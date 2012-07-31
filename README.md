@@ -1,7 +1,6 @@
 scrollable.js - Seamless scrolling for mobile devices
 =====================================================
 
-// quick description and why
 Scrolling on mobile devices is inconsistent at best. scrollable.js provides a sane API that you're already familiar with to make scrolling easy. scrollable.js does not have any dependencies except for a custom version of [iScroll](http://cubiq.org/iscroll-4), which is privately included and not externalized at all.
 
 
@@ -36,9 +35,11 @@ $(element).scrollLeft(20); // set X offset
 
 When native scrolling is not available we must wrap your content and use [iScroll](http://cubiq.org/iscroll-4) to simulate scrolling.
 
+Thus, to manipulate the scrollable region we must only add or remove content from the "scrollable node".
+
 ```js
 $(element).scrollableNode()
-                .append('<div>more stuff</div>');
+          .append('<div>more stuff</div>');
 ```
 
 
@@ -65,14 +66,13 @@ element._scrollTop(20);  // set Y offset
 
 element._scrollLeft();   // retrive X offset
 element._scrollLeft(20); // set X offset
-
-// Using the regular scrollTop / scrollLeft attributes
-// will only work on newer mobile OS's.
 ```
+
+Using the regular scrollTop/scrollLeft attributes will only work on newer mobile OS's.
 
 
 ### Manipulating scrollable region
 
 ```js
-Scrollable.node(element);
+Scrollable.node(element).innerHTML += '<div>more stuff</div>';
 ```
