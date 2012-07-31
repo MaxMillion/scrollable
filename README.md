@@ -3,6 +3,8 @@ scrollable.js - Seamless scrolling for mobile devices
 
 Scrolling on mobile devices is inconsistent at best. scrollable.js provides a sane API that you're already familiar with to make scrolling easy. scrollable.js does not have any dependencies except for a custom version of [iScroll](http://cubiq.org/iscroll-4), which is privately included and not externalized at all.
 
+scrollable.js also provides convenient bindings for ZeptoJS and jQuery to make the development process as seamless as possible.
+
 
 ### Make elements scrollable
 
