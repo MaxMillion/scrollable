@@ -1,14 +1,12 @@
 /**
- * @license
- * iScroll v4.1.6 ~ Copyright (c) 2011 Matteo Spinelli, http://cubiq.org
- * Released under MIT license, http://cubiq.org/license
- */
-/**
- * @license
- * scrollable.js
+ * scrollable.js v1.0
  * Seamless scrolling for mobile devices
  * Copyright (c) 2012 Kik Interactive, github.com/kikinteractive
  * All rights reserved
+ */
+/**
+ * iScroll v4.1.6 ~ Copyright (c) 2011 Matteo Spinelli, http://cubiq.org
+ * Released under MIT license, http://cubiq.org/license
  */
 
 var Scrollable = function (window, document, clik, Zepto, jQuery) {
@@ -211,8 +209,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				var elem       = this[0],
 					elemIsNode = isDOMNode(elem);
 
-				if (elemIsNode && elem.iScrollTop) {
-					return elem.iScrollTop();
+				if (elemIsNode && elem._scrollTop) {
+					return elem._scrollTop();
 				}
 				else if (oldScrollTop) {
 					return oldScrollTop.apply(this, arguments);
@@ -228,8 +226,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			this.forEach(function (elem) {
 				var elemIsNode = isDOMNode(elem);
 
-				if (elemIsNode && elem.iScrollTop) {
-					elem.iScrollTop(top);
+				if (elemIsNode && elem._scrollTop) {
+					elem._scrollTop(top);
 				}
 				else if (oldScrollTop) {
 					oldScrollTop.call(Zepto(elem), top);
@@ -247,8 +245,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				var elem       = this[0],
 					elemIsNode = isDOMNode(elem);
 
-				if (elemIsNode && elem.iScrollLeft) {
-					return elem.iScrollLeft();
+				if (elemIsNode && elem._scrollLeft) {
+					return elem._scrollLeft();
 				}
 				else if (oldScrollTop) {
 					return oldScrollLeft.apply(this, arguments);
@@ -264,8 +262,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			this.forEach(function (elem) {
 				var elemIsNode = isDOMNode(elem);
 
-				if (elemIsNode && elem.iScrollLeft) {
-					elem.iScrollLeft(left);
+				if (elemIsNode && elem._scrollLeft) {
+					elem._scrollLeft(left);
 				}
 				else if (oldScrollLeft) {
 					oldScrollLeft.call(Zepto(elem), left);
@@ -311,8 +309,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			if (typeof top === 'undefined') {
 				var elem = this[0];
 
-				if (isDOMNode(elem) && elem.iScrollTop) {
-					return elem.iScrollTop();
+				if (isDOMNode(elem) && elem._scrollTop) {
+					return elem._scrollTop();
 				}
 				else {
 					return oldScrollTop.apply(this, arguments);
@@ -320,8 +318,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			}
 
 			this.each(function () {
-				if (isDOMNode(this) && this.iScrollTop) {
-					this.iScrollTop(top);
+				if (isDOMNode(this) && this._scrollTop) {
+					this._scrollTop(top);
 				}
 				else {
 					oldScrollTop.call(jQuery(this), top);
@@ -335,8 +333,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			if (typeof left === 'undefined') {
 				var elem = this[0];
 
-				if (isDOMNode(elem) && elem.iScrollLeft) {
-					return elem.iScrollLeft();
+				if (isDOMNode(elem) && elem._scrollLeft) {
+					return elem._scrollLeft();
 				}
 				else {
 					return oldScrollLeft.apply(this, arguments);
@@ -344,8 +342,8 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			}
 
 			this.each(function () {
-				if (isDOMNode(this) && this.iScrollLeft) {
-					this.iScrollLeft(left);
+				if (isDOMNode(this) && this._scrollLeft) {
+					this._scrollLeft(left);
 				}
 				else {
 					oldScrollLeft.call(jQuery(this), left);
@@ -453,6 +451,35 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 
 		elem.style.overflow = 'scroll';
 
+		elem._scrollTop = function (top) {
+			if (typeof top === 'undefined') {
+				return scroller ? Math.max(-scroller.y, 0) : elem.scrollTop;
+			}
+
+			if (!isMobile || nativeScrolling) {
+				elem.scrollTop = top;
+				return;
+			}
+
+			onReady(function () {
+				scroller.scrollTo(scroller.x, Math.max(-top, 0), 1);
+			});
+		};
+		elem._scrollLeft = function (left) {
+			if (typeof left === 'undefined') {
+				return scroller ? Math.max(-scroller.x, 0) : elem.scrollLeft;
+			}
+
+			if (!isMobile || nativeScrolling) {
+				elem.scrollLeft = left;
+				return;
+			}
+
+			onReady(function () {
+				scroller.scrollTo(Math.max(-left, 0), scroller.y, 1);
+			});
+		};
+
 		if ( !isMobile ) {
 			return;
 		}
@@ -472,26 +499,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 
 		var scroller;
 
-		elem.iScroll = true;
-
-		elem.iScrollTop = function (top) {
-			if (typeof top === 'undefined') {
-				return scroller && -scroller.y;
-			}
-
-			onReady(function () {
-				scroller.scrollTo(scroller.x, -top, 1);
-			});
-		};
-		elem.iScrollLeft = function (left) {
-			if (typeof left === 'undefined') {
-				return scroller && -scroller.x;
-			}
-
-			onReady(function () {
-				scroller.scrollTo(-left, scroller.y, 1);
-			});
-		};
+		elem._iScroll = true;
 
 		onReady(function () {
 			scroller = new Scroller(elem, {
@@ -525,7 +533,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			return;
 		}
 
-		if (elem.iScroll) {
+		if (elem._iScroll) {
 			return elem.childNodes[0];
 		}
 		else {
