@@ -70,7 +70,7 @@ element._scrollLeft();   // retrive X offset
 element._scrollLeft(20); // set X offset
 ```
 
-Using the regular scrollTop/scrollLeft attributes will only work on newer mobile OS's.
+Using the regular scrollTop/scrollLeft attributes will only work on newer mobile OS's. (iOS 5+ & Android 4+)
 
 
 ### Manipulating scrollable region
