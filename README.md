@@ -6,6 +6,9 @@ Scrolling on mobile devices is inconsistent at best. scrollable.js provides a sa
 scrollable.js also provides convenient bindings for ZeptoJS and jQuery to make the development process as seamless as possible.
 
 
+Usage with ZeptoJS or jQuery
+-----------------------------------------------------
+
 ### Make elements scrollable
 
 ```js
@@ -48,7 +51,7 @@ $(element).scrollableNode()
 
 
 Standalone Usage
-================
+----------------
 
 scrollable.js has no external dependencies and will work perfectly fine as a standalone library.
 
