@@ -190,7 +190,9 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		function Scrollable () {
 			enableScrolling.apply(this, arguments);
 		}
-		Scrollable.node = getScrollerNode;
+		Scrollable.node = function () {
+			return getScrollerNode.apply(this, arguments);
+		};
 
 		clik.plugin('scrollable', Scrollable);
 	}
@@ -208,17 +210,9 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				return this;
 			},
 			scrollableNode : function () {
-				var nodes = $();
-
-				this.forEach(function (elem) {
-					var node = getScrollerNode(elem);
-
-					if (node) {
-						nodes.push(node);
-					}
-				});
-
-				return nodes;
+				return $(this.map(function () {
+					return getScrollerNode(this);
+				}));
 			}
 		});
 
@@ -310,17 +304,9 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			return this;
 		};
 		jQuery.fn.scrollableNode = function () {
-			var nodes = $();
-
-			this.each(function () {
-				var node = getScrollerNode(this);
-
-				if (node) {
-					nodes = nodes.add(node);
-				}
-			});
-
-			return nodes;
+			return $(this.map(function () {
+				return getScrollerNode(this);
+			}));
 		};
 
 		var oldScrollTop  = jQuery.fn.scrollTop,
@@ -383,7 +369,9 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		function Scrollable () {
 			enableScrolling.apply(this, arguments);
 		}
-		Scrollable.node = getScrollerNode;
+		Scrollable.node = function () {
+			return getScrollerNode.apply(this, arguments);
+		};
 		return Scrollable;
 	}
 
@@ -550,11 +538,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 	}
 
 	function getScrollerNode (elem) {
-		if (!isDOMNode(elem) || !elem._scrollable) {
-			return;
-		}
-
-		if (elem._iScroll) {
+		if (isDOMNode(elem) && elem._iScroll) {
 			return elem.childNodes[0];
 		}
 		else {
