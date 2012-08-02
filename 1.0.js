@@ -203,9 +203,9 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		}
 
 		Zepto.extend(Zepto.fn, {
-			scrollable : function () {
+			scrollable : function (forceIScroll) {
 				this.forEach(function (elem) {
-					enableScrolling(elem);
+					enableScrolling(elem, forceIScroll);
 				});
 				return this;
 			},
@@ -297,9 +297,9 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			return;
 		}
 
-		jQuery.fn.scrollable = function () {
+		jQuery.fn.scrollable = function (forceIScroll) {
 			this.each(function () {
-				enableScrolling(this);
+				enableScrolling(this, forceIScroll);
 			});
 			return this;
 		};
@@ -448,7 +448,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		Scroller = iScroll;
 	}
 
-	function enableScrolling (elem) {
+	function enableScrolling (elem, forceIScroll) {
 		if ( !isDOMNode(elem) ) {
 			throw elem + ' is not a DOM element';
 		}
@@ -489,35 +489,15 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			});
 		};
 
-		if ( !isMobile ) {
-			return;
-		}
-
-		var lastTop, lastLeft;
-
-		function updatePosition () {
-			var top  = elem._scrollTop(),
-				left = elem._scrollLeft();
-
-			if ((top === lastTop) && (left === lastLeft)) {
-				return false;
+		if ( !forceIScroll ) {
+			if ( !isMobile ) {
+				return;
 			}
 
-			lastTop  = top;
-			lastLeft = left;
-			return true;
-		}
-
-		if (nativeScrolling) {
-			elem.style['-webkit-overflow-scrolling'] = 'touch';
-
-			elem.addEventListener('scroll', function (e) {
-				if (updatePosition() === false) {
-					e.stopPropagation();
-				}
-			}, false);
-
-			return;
+			if (nativeScrolling) {
+				elem.style['-webkit-overflow-scrolling'] = 'touch';
+				return;
+			}
 		}
 
 		var wrapper  = document.createElement('div'),
@@ -528,7 +508,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		});
 		elem.appendChild(wrapper);
 
-		var scroller;
+		var scroller, lastTop, lastLeft;
 
 		elem._iScroll = true;
 
@@ -547,14 +527,20 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		});
 
 		function onScroll () {
-			if (updatePosition() === false) {
+			var top  = elem._scrollTop(),
+				left = elem._scrollLeft();
+
+			if ((top === lastTop) && (left === lastLeft)) {
 				return;
 			}
+
+			lastTop  = top;
+			lastLeft = left;
 
 			if (elem.dispatchEvent) {
 				var evt = document.createEvent('MouseEvents');
 				evt.initMouseEvent(
-					'scroll', true , true , window,
+					'scroll', false, false, window,
 					0       , 0    , 0    , 0     , 0,
 					false   , false, false, false ,
 					0       , null
