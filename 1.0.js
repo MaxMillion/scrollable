@@ -462,7 +462,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 
 		elem._scrollTop = function (top) {
 			if (typeof top === 'undefined') {
-				return scroller ? Math.max(-scroller.y, 0) : elem.scrollTop;
+				return scroller ? Math.max(parseInt(-scroller.y), 0) : elem.scrollTop;
 			}
 
 			if (!isMobile || nativeScrolling) {
@@ -476,7 +476,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 		};
 		elem._scrollLeft = function (left) {
 			if (typeof left === 'undefined') {
-				return scroller ? Math.max(-scroller.x, 0) : elem.scrollLeft;
+				return scroller ? Math.max(parseInt(-scroller.x), 0) : elem.scrollLeft;
 			}
 
 			if (!isMobile || nativeScrolling) {
@@ -493,8 +493,30 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			return;
 		}
 
+		var lastTop, lastLeft;
+
+		function updatePosition () {
+			var top  = elem._scrollTop(),
+				left = elem._scrollLeft();
+
+			if ((top === lastTop) && (left === lastLeft)) {
+				return false;
+			}
+
+			lastTop  = top;
+			lastLeft = left;
+			return true;
+		}
+
 		if (nativeScrolling) {
 			elem.style['-webkit-overflow-scrolling'] = 'touch';
+
+			elem.addEventListener('scroll', function (e) {
+				if (updatePosition() === false) {
+					e.stopPropagation();
+				}
+			}, false);
+
 			return;
 		}
 
@@ -518,12 +540,17 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				hScrollbar        : false,
 				vScrollbar        : false,
 				bounce            : bounce,
+				onScrollMove      : onScroll,
 				onBeforeScrollEnd : onScroll,
 				onScrollEnd       : onScroll
 			});
 		});
 
 		function onScroll () {
+			if (updatePosition() === false) {
+				return;
+			}
+
 			if (elem.dispatchEvent) {
 				var evt = document.createEvent('MouseEvents');
 				evt.initMouseEvent(
