@@ -34,7 +34,6 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 	var readyCallbacks  = [],
 		isReady         = false,
 		nativeScrolling = false,
-		bounce          = false,
 		os              = mobileOS(),
 		isMobile        = !!os.name,
 		Scroller;
@@ -376,26 +375,12 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 	}
 
 	function main () {
-		if (os.ios) {
-			if (os.version >= 5) {
-				nativeScrolling = true;
-			}
-			else {
-				bounce = true;
-			}
-		}
-		else if (os.android) {
-			if (os.version >= 4) {
-				nativeScrolling = true;
-			}
-			else {
-				bounce = false;
-			}
+		if ((os.ios && (os.version >= 5)) ||
+				(os.android && (os.version >= 4))) {
+			nativeScrolling = true;
 		}
 
-		if (!nativeScrolling && isMobile) {
-			setupIScroll();
-		}
+		setupIScroll();
 
 		fireOnReady(fireReadyEvent);
 
@@ -519,7 +504,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				useTransition     : true,
 				hScrollbar        : false,
 				vScrollbar        : false,
-				bounce            : bounce,
+				bounce            : !!os.ios,
 				onScrollMove      : onScroll,
 				onBeforeScrollEnd : onScroll,
 				onScrollEnd       : onScroll
