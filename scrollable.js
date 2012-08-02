@@ -518,6 +518,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				hScrollbar        : false,
 				vScrollbar        : false,
 				bounce            : bounce,
+				onScrollMove      : onScroll,
 				onBeforeScrollEnd : onScroll,
 				onScrollEnd       : onScroll
 			});
