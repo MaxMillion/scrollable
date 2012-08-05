@@ -63,6 +63,15 @@ Scrollable(element);
 ```
 
 
+### Bind to scroll events
+
+```js
+element.addEventListener('scroll', function () {
+	// fired on scroll
+}, false);
+```
+
+
 ### Setting scroll offset
 
 ```js
