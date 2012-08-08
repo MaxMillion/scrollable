@@ -10,6 +10,7 @@ Links
 -----
 
 [Download script (v1.0 minified)](http://code.kik.com/scrollable/1.0.min.js)
+
 [View demo](http://code.kik.com/scrollable/demos/basic.html)
 
 
