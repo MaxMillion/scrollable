@@ -450,7 +450,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				return scroller ? Math.max(parseInt(-scroller.y), 0) : elem.scrollTop;
 			}
 
-			if (!isMobile || nativeScrolling) {
+			if (!scroller && (!isMobile || nativeScrolling)) {
 				elem.scrollTop = top;
 				return;
 			}
@@ -464,7 +464,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				return scroller ? Math.max(parseInt(-scroller.x), 0) : elem.scrollLeft;
 			}
 
-			if (!isMobile || nativeScrolling) {
+			if (!scroller && (!isMobile || nativeScrolling)) {
 				elem.scrollLeft = left;
 				return;
 			}
