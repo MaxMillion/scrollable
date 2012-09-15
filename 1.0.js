@@ -29,7 +29,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-
 var Scrollable = function (window, document, clik, Zepto, jQuery) {
 	var readyCallbacks  = [],
 		isReady         = false,
@@ -499,15 +498,16 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 
 		onReady(function () {
 			scroller = new Scroller(elem, {
-				checkDOMChanges   : true,
-				useTransform      : true,
-				useTransition     : true,
-				hScrollbar        : false,
-				vScrollbar        : false,
-				bounce            : !!os.ios,
-				onScrollMove      : onScroll,
-				onBeforeScrollEnd : onScroll,
-				onScrollEnd       : onScroll
+				checkDOMChanges     : true,
+				useTransform        : true,
+				useTransition       : true,
+				hScrollbar          : false,
+				vScrollbar          : false,
+				bounce              : !!os.ios,
+				onScrollMove        : onScroll,
+				onBeforeScrollEnd   : onScroll,
+				onScrollEnd         : onScroll,
+				onBeforeScrollStart : inputScrollFix
 			});
 		});
 
@@ -532,6 +532,18 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				);
 				elem.dispatchEvent(evt);
 			}
+		}
+	}
+
+	function inputScrollFix (e) {
+		var target = e.target;
+
+		while (target.nodeType !== 1) {
+			target = target.parentNode;
+		}
+
+		if ((target.tagName !== 'SELECT') && (target.tagName !== 'INPUT') && (target.tagName !== 'TEXTAREA')) {
+			e.preventDefault();
 		}
 	}
 
