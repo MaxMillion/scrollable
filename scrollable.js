@@ -424,7 +424,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			}
 
 			onReady(function () {
-				scroller.scrollTo(scroller.x, Math.max(-top, 0), 1);
+				scroller.scrollTo(scroller.x, Math.min(-top, 0), 1);
 			});
 		};
 		elem._scrollLeft = function (left) {
@@ -438,7 +438,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 			}
 
 			onReady(function () {
-				scroller.scrollTo(Math.max(-left, 0), scroller.y, 1);
+				scroller.scrollTo(Math.min(-left, 0), scroller.y, 1);
 			});
 		};
 
