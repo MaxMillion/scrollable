@@ -471,7 +471,7 @@ var Scrollable = function (window, document, clik, Zepto, jQuery) {
 				useTransform        : true,
 				useTransition       : true,
 				hScrollbar          : false,
-				vScrollbar          : false,
+				vScrollbar          : !!os.ios,
 				bounce              : !!os.ios,
 				onScrollMove        : onScroll,
 				onBeforeScrollEnd   : onScroll,
