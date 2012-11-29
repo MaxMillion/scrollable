@@ -11,7 +11,7 @@ Scrollable._getScrollableNode = function (isDOMNode) {
 
 
 
-Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, iScroll, window, document) {
+Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, scrollWatcher, iScroll, window, document) {
 	var nativeScrolling = shouldUseNativeScrolling();
 	return enableScrolling;
 
@@ -76,6 +76,11 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 
 			if (nativeScrolling) {
 				elem.style['-webkit-overflow-scrolling'] = 'touch';
+
+				if (os.ios) {
+					scrollWatcher(elem);
+				}
+
 				return;
 			}
 		}
@@ -169,6 +174,7 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 	Scrollable._isDOMNode      , // from utils.js
 	Scrollable._onReady        , // from utils.js
 	Scrollable._forEachInArray , // from utils.js
+	Scrollable._scrollWatcher  , // from scrollWatcher.js
 	iScroll                    , // from iscroll.js
 	window                     ,
 	document

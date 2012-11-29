@@ -161,10 +161,11 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
 
-		<script src="../src/iscroll.js"   ></script>
-		<script src="../src/scrollable.js"></script>
-		<script src="../src/utils.js"     ></script>
-		<script src="../src/core.js"      ></script>
+		<script src="../src/iscroll.js"      ></script>
+		<script src="../src/scrollable.js"   ></script>
+		<script src="../src/utils.js"        ></script>
+		<script src="../src/scrollWatcher.js"></script>
+		<script src="../src/core.js"         ></script>
 
 		<script>
 			var list   = $('.list'),
@@ -188,6 +189,10 @@
 				.on('click', scrollToTop);
 
 			printOffset();
+
+			setInterval(function () {
+				console.log('isScrolling: ' + list[0]._isScrolling);
+			}, 100);
 		</script>
 	</body>
 </html>
