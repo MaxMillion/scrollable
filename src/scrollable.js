@@ -32,7 +32,7 @@ var Scrollable = function (Zepto, jQuery) {
 					return Scrollable._getScrollableNode(this);
 				}));
 			}
-
+		});
 
 		var zeptoScrollTop  = Zepto.fn.scrollTop,
 			zeptoScrollLeft = Zepto.fn.scrollLeft;
