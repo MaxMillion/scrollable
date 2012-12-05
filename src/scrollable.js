@@ -29,10 +29,10 @@ var Scrollable = function (Zepto, jQuery) {
 			},
 			scrollableNode : function () {
 				return $(this.map(function () {
-					return Scrollable._getScrollerNode(this);
+					return Scrollable._getScrollableNode(this);
 				}));
 			}
-		});
+
 
 		var zeptoScrollTop  = Zepto.fn.scrollTop,
 			zeptoScrollLeft = Zepto.fn.scrollLeft;
@@ -124,7 +124,7 @@ var Scrollable = function (Zepto, jQuery) {
 
 		jQuery.fn.scrollableNode = function () {
 			return $(this.map(function () {
-				return Scrollable._getScrollerNode(this);
+				return Scrollable._getScrollableNode(this);
 			}));
 		};
 
