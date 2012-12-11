@@ -46,7 +46,7 @@
 				-moz-box-shadow: 0 1px 3px #777;
 				box-shadow: 0 1px 3px #777;
 			}
-			.box .topbar .offset,
+			.box .topbar .scrolling,
 			.box .topbar .button {
 				margin: 6px;
 				padding: 0 8px;
@@ -58,13 +58,10 @@
 				font-weight: bold;
 				line-height: 32px;
 			}
-			.box .topbar .offset {
+			.box .topbar .scrolling {
 				float: left;
 				background: #E5E5E5;
 				color: #555;
-			}
-			.box .topbar .offset span {
-				font-weight: normal;
 			}
 			.box .topbar .button {
 				float: right;
@@ -119,7 +116,7 @@
 	<body>
 		<div class="box">
 			<div class="topbar">
-				<div class="offset">Offset: <span></span></div>
+				<div class="scrolling">Scrolling</div>
 				<div class="button">Top</div>
 				<div class="clear"></div>
 			</div>
@@ -168,30 +165,33 @@
 		<script src="../src/core.js"         ></script>
 
 		<script>
-			var list   = $('.list'),
-				offset = $('.topbar .offset span'),
-				button = $('.topbar .button');
+			var list      = $('.list'),
+				scrolling = $('.topbar .scrolling'),
+				button    = $('.topbar .button');
 
-			function printOffset () {
-				offset.text( list.scrollTop() );
+			function printScrolling () {
+				if ( list[0]._isScrolling ) {
+					scrolling.css('background', '#CFC');
+				}
+				else {
+					scrolling.css('background', '#FCC');
+				}
 			}
 
 			function scrollToTop () {
 				list.scrollTop(0);
 			}
 
-			list
-				.scrollable()
-				.on('scroll', printOffset);
+			list.scrollable();
 
 			button
 				.clickable()
 				.on('click', scrollToTop);
 
-			printOffset();
+			printScrolling();
 
 			setInterval(function () {
-				console.log('isScrolling: ' + list[0]._isScrolling);
+				printScrolling();
 			}, 100);
 		</script>
 	</body>
