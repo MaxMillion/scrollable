@@ -22,26 +22,58 @@ Scrollable._scrollWatcher = function (os) {
 			scroller._isScrolling = (isScrolling || willScroll);
 		}
 
-		function onTouchStart () {
+		function multitouchBlock (e, maxTouches, maxChanges) {
+			if ((e.touches.length <= maxTouches) && ((typeof maxChanges === 'undefined') || (e.changedTouches.length <= maxChanges))) {
+				return false;
+			}
+
+			e.preventDefault();
+
+			willScroll  = false;
+			isScrolling = false;
+			updateScrollingFlag();
+
+			return true;
+		}
+
+		function onTouchStart (e) {
+			if ( multitouchBlock(e, 1) ) {
+				return;
+			}
+
 			willScroll = false;
 			updateScrollingFlag();
 		}
 
-		function onTouchMove () {
+		function onTouchMove (e) {
+			if ( multitouchBlock(e, 1) ) {
+				return;
+			}
+
 			willScroll = true;
 			lastScrollPosition = scroller.scrollTop;
 			updateScrollingFlag();
 		}
 
-		function onTouchCancel () {
+		function onTouchCancel (e) {
+			if ( multitouchBlock(e, 0, 1) ) {
+				return;
+			}
+
 			willScroll  = false;
 			isScrolling = false;
 			updateScrollingFlag();
 		}
 
-		function onTouchEnd () {
+		function onTouchEnd (e) {
+			if ( multitouchBlock(e, 0, 1) ) {
+				return;
+			}
+
+			var offset;
+
 			if (willScroll) {
-				var offset = Math.abs(scroller.scrollTop - lastScrollPosition);
+				offset = Math.abs(scroller.scrollTop - lastScrollPosition);
 
 				if (offset > 5) {
 					isScrolling = true;
@@ -55,8 +87,8 @@ Scrollable._scrollWatcher = function (os) {
 
 		function onScroll () {
 			if (!willScroll && isScrolling) {
-				isScrolling = false;
 				willScroll  = false;
+				isScrolling = false;
 				updateScrollingFlag();
 			}
 		}
