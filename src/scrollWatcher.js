@@ -15,11 +15,18 @@ Scrollable._scrollWatcher = function (os) {
 		scroller.addEventListener('scroll'     , onScroll     );
 
 		updateScrollingFlag();
+		scroller._resetScrolling = resetScrollingFlag;
 		return;
 
 
 		function updateScrollingFlag () {
 			scroller._isScrolling = (isScrolling || willScroll);
+		}
+
+		function resetScrollingFlag () {
+			isScrolling = false;
+			willScroll  = false;
+			updateScrollingFlag();
 		}
 
 		function multitouchBlock (e, maxTouches, maxChanges) {
@@ -29,9 +36,7 @@ Scrollable._scrollWatcher = function (os) {
 
 			e.preventDefault();
 
-			willScroll  = false;
-			isScrolling = false;
-			updateScrollingFlag();
+			resetScrollingFlag();
 
 			return true;
 		}
@@ -41,8 +46,7 @@ Scrollable._scrollWatcher = function (os) {
 				return;
 			}
 
-			willScroll = false;
-			updateScrollingFlag();
+			resetScrollingFlag();
 		}
 
 		function onTouchMove (e) {
@@ -60,9 +64,7 @@ Scrollable._scrollWatcher = function (os) {
 				return;
 			}
 
-			willScroll  = false;
-			isScrolling = false;
-			updateScrollingFlag();
+			resetScrollingFlag();
 		}
 
 		function onTouchEnd (e) {
@@ -87,9 +89,7 @@ Scrollable._scrollWatcher = function (os) {
 
 		function onScroll () {
 			if (!willScroll && isScrolling) {
-				willScroll  = false;
-				isScrolling = false;
-				updateScrollingFlag();
+				resetScrollingFlag();
 			}
 		}
 	}
