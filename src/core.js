@@ -125,6 +125,10 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 		});
 
 		elem.appendChild(wrapper);
+
+		elem.style.position = 'relative';
+		wrapper.style['min-height'] = '100%';
+		wrapper.style['min-width' ] = '100%';
 	}
 
 	function createScrollHandler (elem) {
