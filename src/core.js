@@ -126,7 +126,7 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 
 		elem.appendChild(wrapper);
 
-		elem.style.position = 'relative';
+// 		elem.style.position = 'relative';
 		wrapper.style['min-height'] = '100%';
 		wrapper.style['min-width' ] = '100%';
 	}

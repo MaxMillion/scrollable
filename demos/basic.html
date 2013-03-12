@@ -15,16 +15,15 @@
 				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 				-webkit-user-select: none;
 				user-select: none;
+				height: 100%;
 			}
 			.clear {
 				clear: both;
 			}
 			.box {
 				position: relative;
-				margin: 16px auto;
 				width: 100%;
-				max-width: 288px;
-				height: 240px;
+				height: 100%;
 				background: #FFF;
 				-webkit-border-radius: 3px;
 				-moz-border-radius: 3px;
@@ -91,21 +90,26 @@
 				-moz-box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
 				box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
 			}
-			.box .list {
+			.box .content {
 				z-index: 100;
-				position: relative;
-				height: 196px;
-				overflow: scroll;
+				position: absolute;
+				top: 44px;
+				left: 0px;
+				right: 0px;
+				bottom: 0px;
+				/*overflow: scroll;*/
 			}
 			.box .list .item {
-				margin: 8px 12px;
-				padding: 4px 12px;
-				height: 24px;
+				padding: 2px;
+				min-height: 68px;
 				color: #444;
-				font-size: 18px;
+				font-size: 24px;
 				font-weight: bold;
-				line-height: 24px;
+				line-height: 68px;
 				text-shadow: 0 1px 0 #FFF;
+			}
+			.box .list .item img {
+				float: left;
 			}
 			.box .list .item:nth-child(odd) {
 				background: #F7F7F7;
@@ -117,41 +121,15 @@
 		<div class="box">
 			<div class="topbar">
 				<div class="scrolling">Scrolling</div>
-				<div class="button">Top</div>
+				<div class="button">Use bezier</div>
 				<div class="clear"></div>
 			</div>
 
-			<div class="list">
-				<div class="item">Item 1</div>
-				<div class="item">Item 2</div>
-				<div class="item">Item 3</div>
-				<div class="item">Item 4</div>
-				<div class="item">Item 5</div>
-				<div class="item">Item 6</div>
-				<div class="item">Item 7</div>
-				<div class="item">Item 8</div>
-				<div class="item">Item 9</div>
-				<div class="item">Item 10</div>
-				<div class="item">Item 11</div>
-				<div class="item">Item 12</div>
-				<div class="item">Item 13</div>
-				<div class="item">Item 14</div>
-				<div class="item">Item 15</div>
-				<div class="item">Item 16</div>
-				<div class="item">Item 17</div>
-				<div class="item">Item 18</div>
-				<div class="item">Item 19</div>
-				<div class="item">Item 20</div>
-				<div class="item">Item 21</div>
-				<div class="item">Item 22</div>
-				<div class="item">Item 23</div>
-				<div class="item">Item 24</div>
-				<div class="item">Item 25</div>
-				<div class="item">Item 26</div>
-				<div class="item">Item 27</div>
-				<div class="item">Item 28</div>
-				<div class="item">Item 29</div>
-				<div class="item">Item 30</div>
+			<div class="content">
+				<div class="scroller">
+					<div class="list">
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -166,8 +144,19 @@
 
 		<script>
 			var list      = $('.list'),
+				content   = $('.content'),
 				scrolling = $('.topbar .scrolling'),
-				button    = $('.topbar .button');
+				button    = $('.topbar .button'),
+				iscroll,
+				usingBezier = false;
+
+			for (var i = 0; i < 200; i++) {
+				var div = $('<div />');
+				div.addClass('item');
+				div.text("Item " + i);
+				div.append($('<img />').attr('src', 'http://lorempixel.com/64/64/?'+Math.random()));
+				list.append(div);
+			}
 
 			function printScrolling () {
 				if ( list[0]._isScrolling ) {
@@ -178,15 +167,33 @@
 				}
 			}
 
-			function scrollToTop () {
-				list.scrollTop(0);
+			function toggleUseBezier () {
+				if (usingBezier) {
+					button.text("Use bezier");
+					iscroll.destroy();
+					iscroll = new iScroll(content[0], {
+						useTransition: false,
+						useTransform: true,
+					});
+					usingBezier = false;
+				} else {
+					button.text("Use setTimeout");
+					iscroll.destroy();
+					iscroll = new iScroll(content[0], {
+						useTransition: true,
+						useTransform: true,
+					});
+					usingBezier = true;
+				}
 			}
 
-			list.scrollable();
+			iscroll = new iScroll(content[0], {
+				useTransform        : true,
+			});
 
 			button
 				.clickable()
-				.on('click', scrollToTop);
+				.on('click', toggleUseBezier);
 
 			printScrolling();
 
