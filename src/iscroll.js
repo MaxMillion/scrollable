@@ -210,8 +210,6 @@ iScroll.prototype = {
 
 		if (that.options.onBeforeScrollStart) that.options.onBeforeScrollStart.call(that, e);
 
-		if (that.options.useTransition) that._transitionTime(0);
-
 		that.moved = false;
 		that.animating = false;
 		that.zoomed = false;
@@ -222,23 +220,23 @@ iScroll.prototype = {
 		that.dirX = 0;
 		that.dirY = 0;
 
-		if (that.options.momentum) {
-			if (that.options.useTransform) {
-				// Very lame general purpose alternative to CSSMatrix
-				matrix = getComputedStyle(that.scroller, null)[vendor + 'Transform'].replace(/[^0-9-.,]/g, '').split(',');
-				x = matrix[4] * 1;
-				y = matrix[5] * 1;
-			} else {
-				x = getComputedStyle(that.scroller, null).left.replace(/[^0-9-]/g, '') * 1;
-				y = getComputedStyle(that.scroller, null).top.replace(/[^0-9-]/g, '') * 1;
-			}
+		if (that.options.useTransform) {
+			// Very lame general purpose alternative to CSSMatrix
+			matrix = getComputedStyle(that.scroller, null)[vendor + 'Transform'].replace(/[^0-9-.,]/g, '').split(',');
+			x = matrix[4] * 1;
+			y = matrix[5] * 1;
+		} else {
+			x = getComputedStyle(that.scroller, null).left.replace(/[^0-9-]/g, '') * 1;
+			y = getComputedStyle(that.scroller, null).top.replace(/[^0-9-]/g, '') * 1;
+		}
 
-			if (x != that.x || y != that.y) {
-				if (that.options.useTransition) that._unbind('webkitTransitionEnd');
-				else cancelFrame(that.aniTime);
-				that.steps = [];
-				that._pos(x, y);
-			}
+		if (that.options.useTransition) that._transitionTime(0);
+		
+		if (x != that.x || y != that.y) {
+			if (that.options.useTransition) that._unbind('webkitTransitionEnd');
+			else cancelFrame(that.aniTime);
+			that.steps = [];
+			that._pos(x, y);
 		}
 
 		that.startX = that.x;
@@ -476,7 +474,20 @@ iScroll.prototype = {
 	},
 
 	_transitionTime: function (time) {
-		this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
+		if (!this.options.useTransform) {
+			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
+			return;
+		}
+		
+		if (time === 0) {
+			this.scroller.style[vendor + 'TransitionProperty'] = 'margin-top';
+			//this.scroller.style[vendor + 'TransitionDuration'] = '0';
+			//this.scroller.style[vendor + 'TransitionTimingFunction'] = 'step-start';
+		} else {
+			this.scroller.style[vendor + 'TransitionProperty'] = '-' + vendor.toLowerCase() + '-transform';
+			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
+			//this.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
+		}
 	},
 
 	_momentum: function (dist, time, maxDistUpper, maxDistLower, size) {
