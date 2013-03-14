@@ -4,6 +4,9 @@
  */
 
 (function(){
+	function round(n) {
+		return n << 0;
+	}
 
 	function EventBus() {
 		var self = this;
@@ -51,21 +54,63 @@
 		var steps = [];
 		var frameId = -1;
 		var running = false;
+		var time = 0;
 		var xpos = 0;
 		var ypos = 0;
+
+		elm.style[vendor + 'TransitionProperty'] = '-' + vendor.toLowerCase() +
+'-transform';
+		elm.style[vendor + 'TransitionDuration'] = '0';
+		elm.style[vendor + 'TransformOrigin'] = '0 0';
+		elm.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
 
 		function stop(cb) {
 			cancelFrame(frameId);
 			steps = [];
+			cb();
 		}
+
+		self.currentPosition = currentPosition;
+		function currentPosition() {
+			var style = getComputedStyle(elm, null);
+			var useTransform = true;
+			if (useTransform) {
+				// Very lame general purpose alternative to CSSMatrix
+				var matrix = style[vendor + 'Transform']
+					.replace(/[^0-9-.,]/g, '').split(',');
+				return {
+					x: +matrix[4] || 0,
+					y: +matrix[5] || 0,
+				};
+			} else {
+				var style = getComputedStyle(this.scroller, null);
+				return {
+					x: style.left.replace(/[^0-9-.,]/g, ''),
+					y: style.top.replace(/[^0-9-.,]/g, ''),
+				};
+			}
+
+		}
+
+		self.moveTo = moveTo;
 		function moveTo(x, y, t) {
-			stop(function () {
-				steps.push({
-					x: x, y: y, t: t || 0,
-				});
-				start();
+			if (!t) {
+				if (running) {
+					console.log("Attempt to move while scrolling");
+				}
+				setTime(0);
+				setPosition(x, y, MODE_3D);
+				return;
+			}
+			console.log("Actuall scrolling for a time: ", t, "ms");
+// 			running = false;
+			steps.push({
+				x: x, y: y, t: t,
 			});
+			start();
 		}
+
+		self.moveBy = moveBy;
 		function moveBy(x, y, t) {
 			stop(function () {
 				steps.push({
@@ -74,19 +119,25 @@
 				start();
 			});
 		}
+
 		function start() {
 			if (running) return;
+			running = false;
+			if (steps.length < 1) return;
 
 			var step = steps.shift();
 			if (step.x === xpos && step.y === ypos) return;
 
 			running = true;
-			setTime(step.time);
-			setPos(stop.x, step.y, MODE_3D);
-			on('transitionEnd', transitionEnd);
+			setTime(step.t);
+			setPosition(stop.x, step.y, MODE_3D);
 		}
+
+		elm.addEventListener('webkitTransitionEnd', transitionEnd, false);
+		elm.addEventListener('transitionend', transitionEnd, false);
 		function transitionEnd() {
 			running = false;
+			start();
 		}
 
 		var p0 = {x: 0   , y: 0};
@@ -106,6 +157,22 @@
 				x: comp(t, 'x'),
 				y: comp(t, 'y'),
 			};
+		}
+
+		function setTime(t) {
+			if (time === round(t)) return;
+			time = round(t);
+			console.log("Changing transition time to ", time, "ms");
+			elm.style[vendor + 'TransitionDuration'] = time + 'ms';
+		}
+
+		function setPosition(x, y, mode) {
+			if (mode === MODE_3D) {
+				var tr = 'translate3d(' + round(x) + 'px,' + round(y) + 'px,0px)';
+				elm.style[vendor + 'Transform'] = tr;
+			}
+			xpos = x;
+			ypos = y;
 		}
 	}
 
@@ -206,13 +273,14 @@ var m = Math,
 		that.options.useTransition = hasTransitionEnd && that.options.useTransition;
 
 		// Set some default styles
-		that.scroller.style[vendor + 'TransitionProperty'] = that.options.useTransform ? '-' + vendor.toLowerCase() + '-transform' : 'top left';
-		that.scroller.style[vendor + 'TransitionDuration'] = '0';
-		that.scroller.style[vendor + 'TransformOrigin'] = '0 0';
-		if (that.options.useTransition) that.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
-
-		if (that.options.useTransform) that.scroller.style[vendor + 'Transform'] = trnOpen + that.x + 'px,' + that.y + 'px' + trnClose;
-		else that.scroller.style.cssText += ';position:absolute;top:' + that.y + 'px;left:' + that.x + 'px';
+		that.animator = new Animator(that.scroller);
+// 		that.scroller.style[vendor + 'TransitionProperty'] = that.options.useTransform ? '-' + vendor.toLowerCase() + '-transform' : 'top left';
+// 		that.scroller.style[vendor + 'TransitionDuration'] = '0';
+// 		that.scroller.style[vendor + 'TransformOrigin'] = '0 0';
+// 		if (that.options.useTransition) that.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
+//
+// 		if (that.options.useTransform) that.scroller.style[vendor + 'Transform'] = trnOpen + that.x + 'px,' + that.y + 'px' + trnClose;
+// 		else that.scroller.style.cssText += ';position:absolute;top:' + that.y + 'px;left:' + that.x + 'px';
 
 		that.refresh();
 
@@ -250,19 +318,6 @@ iScroll.prototype = {
 	},
 
 	_curPos: function () {
-		if (this.options.useTransform) {
-			// Very lame general purpose alternative to CSSMatrix
-			matrix = getComputedStyle(this.scroller, null)[vendor + 'Transform'].replace(/[^0-9-.,]/g, '').split(',');
-			return {
-				x: matrix[4] * 1,
-				y: matrix[5] * 1,
-			};
-		} else {
-			return {
-				x: getComputedStyle(this.scroller, null).left.replace(/[^0-9-]/g, '') * 1,
-				y: getComputedStyle(this.scroller, null).top.replace(/[^0-9-]/g, '') * 1,
-			};
-		}
 	},
 
 	_start: function (e) {
@@ -284,9 +339,9 @@ iScroll.prototype = {
 		that.dirX = 0;
 		that.dirY = 0;
 
-		var pos = this._curPos();
+		var pos = this.animator.currentPosition();
 
-		if (that.options.useTransition) that._transitionTime(0);
+		//if (that.options.useTransition) that._transitionTime(0);
 
 		if (pos.x != that.x || pos.y != that.y) {
 			if (that.options.useTransition) that._unbind('webkitTransitionEnd');
@@ -497,6 +552,7 @@ iScroll.prototype = {
 	 *
 	 */
 	_startAni: function () {
+		throw "You shouldn't really call _startAni anymore.";
 		var that = this,
 			startX = that.x, startY = that.y,
 			startTime = Date.now(),
@@ -552,6 +608,8 @@ iScroll.prototype = {
 	},
 
 	_transitionTime: function (time) {
+// 		return;
+		throw "Don't use transitionTime";
 		if (!this.options.useTransform) {
 			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
 			return;
@@ -569,6 +627,12 @@ iScroll.prototype = {
 		}
 	},
 	_pos: function (x, y, kind, cb) {
+		this.animator.moveTo(x, y);
+		this.x = x;
+		this.y = y;
+		if (cb) cb();
+		return;
+
 	var that = this;
 		x = this.hScroll ? x : 0;
 		y = this.vScroll ? y : 0;
@@ -724,6 +788,10 @@ iScroll.prototype = {
 	},
 
 	scrollTo: function (x, y, time, relative) {
+		if (relative) throw "I broke relative scrolling sorry";
+		this.animator.moveTo(x, y, time);
+		return;
+
 		this.stop();
 		this.steps.push({
 			x: relative ? that.x - x : x,
