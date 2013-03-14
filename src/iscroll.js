@@ -45,7 +45,7 @@
 		}
 	}
 
-var USE_3D = 1, USE_2D = 2, USE_DOM = 3;
+var USE_3D = 1, USE_2D = 2, USE_DOM = 3, USE_FORCE = 4;
 var m = Math,
 	mround = function (r) { return r >> 0; },
 	vendor = (/webkit/i).test(navigator.appVersion) ? 'webkit' :
@@ -220,21 +220,25 @@ iScroll.prototype = {
 			if (that.options.useTransition) that._unbind('webkitTransitionEnd');
 			else cancelFrame(that.aniTime);
 			that.steps = [];
-			that._pos(x, y, USE_3D);
+			that._pos(x, y, USE_FORCE, afterForce);
+		} else {
+			afterForce();
 		}
 
-		that.startX = that.x;
-		that.startY = that.y;
-		that.pointX = point.pageX;
-		that.pointY = point.pageY;
+		function afterForce() {
+			that.startX = that.x;
+			that.startY = that.y;
+			that.pointX = point.pageX;
+			that.pointY = point.pageY;
 
-		that.startTime = e.timeStamp || Date.now();
+			that.startTime = e.timeStamp || Date.now();
 
-		if (that.options.onScrollStart) that.options.onScrollStart.call(that, e);
+			if (that.options.onScrollStart) that.options.onScrollStart.call(that, e);
 
-		that._bind(MOVE_EV);
-		that._bind(END_EV);
-		that._bind(CANCEL_EV);
+			that._bind(MOVE_EV);
+			that._bind(END_EV);
+			that._bind(CANCEL_EV);
+		}
 	},
 
 	_move: function (e) {
@@ -426,19 +430,11 @@ iScroll.prototype = {
 		that.moved = true;
 
 		if (that.options.useTransition) {
-		that.scroller.style[vendor + 'TransitionDuration'] = '0';
-		that.scroller.style[vendor + "TransitionProperty"] = 'margin-top';
-			that._pos(that.x, that.y, USE_DOM);
-			setTimeout(function () {
-				that._pos(that.x, that.y, USE_2D);
-				setTimeout(function () {
-					that._transitionTime(step.time);
-					that._pos(step.x, step.y, USE_2D);
-					that.animating = false;
-					if (step.time) that._bind('webkitTransitionEnd');
-					else that._resetPos(0);
-				}, 0);
-			}, 0);
+			that._transitionTime(step.time);
+			that._pos(step.x, step.y, USE_3D);
+			that.animating = false;
+			if (step.time) that._bind('webkitTransitionEnd');
+			else that._resetPos(0);
 			return;
 		}
 
@@ -482,20 +478,42 @@ iScroll.prototype = {
 			this.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
 		}
 	},
-	_pos: function (x, y, kind) {
+	_pos: function (x, y, kind, cb) {
+	var that = this;
 		x = this.hScroll ? x : 0;
 		y = this.vScroll ? y : 0;
 
 		//use3d = false;
-		if (kind === USE_DOM || kind === undefined) {
+		if (kind === USE_FORCE) {
+			var startt = Date.now();
+			var curx = that.x, cury = that.y;
+			that.scroller.style[vendor + 'TransitionDuration'] = '0';
+			that.scroller.style[vendor + "TransitionProperty"] = 'margin-top';
+			that._pos(x, y, USE_2D);
+			setTimeout(function () {
+				that._transitionTime(0);
+				that._pos(x, y, USE_3D);
+				var endt = Date.now();
+				console.log("Removing 3d took", endt - startt, 'milliseconds');
+				cb();
+				setTimeout(function () {
+					console.log("Adding 3d took", Date.now() - endt, 'milliseconds');
+					console.log("Total operation took", Date.now() - startt, 'milliseconds');
+				}, 0);
+			}, 0);
+		} else if (kind === USE_DOM) {
+			that.options.useTransform = false;
 			x = mround(x);
 			y = mround(y);
-			this.scroller.style.left = x + 'px';
-			this.scroller.style.top = y + 'px';
+			var s = this.scroller.style;
+			s.left = x + 'px';
+			s.top = y + 'px';
+			console.log(x, y, s.left, s.top);
 			this.scroller.style[vendor + "Transform"] = '';
 		} else {
+			that.options.useTransform = true;
 			var tr;
-			if (kind === USE_3D) {
+			if (kind === USE_3D || kind === undefined) {
 				tr = 'translate3d(' + x + 'px,' + y + 'px,0px)';
 			} else if (kind === USE_2D) {
 				tr = 'translate(' + x + 'px,' + y + 'px)';

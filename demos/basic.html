@@ -139,6 +139,7 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
 
+		<script src="/zerver/require.js"></script>
 		<script src="../src/iscroll.js"      ></script>
 		<script src="../src/scrollable.js"   ></script>
 		<script src="../src/utils.js"        ></script>
@@ -176,15 +177,15 @@
 			};
 			function toggleUseBezier () {
 				if (opts.useTransition) {
-					button.text("Use setTimeout");
-					iscroll.destroy();
 					opts.useTransition = false;
+					button.text("Use bezier");
+					iscroll.destroy();
 					iscroll = new iScroll(content[0], opts);
 					usingBezier = true;
 				} else {
-					button.text("Use bezier");
-					iscroll.destroy();
 					opts.useTransition = true;
+					button.text("Use setTimeout");
+					iscroll.destroy();
 					iscroll = new iScroll(content[0], opts);
 					usingBezier = false;
 				}
