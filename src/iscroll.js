@@ -450,6 +450,7 @@ iScroll.prototype = {
 		}
 
 		step = that.steps.shift();
+		that.currentStep = step;
 
 		if (step.x == startX && step.y == startY) step.time = 0;
 
@@ -515,10 +516,11 @@ iScroll.prototype = {
 			var startt = Date.now();
 			var curx = that.x, cury = that.y;
 			that.scroller.style[vendor + 'TransitionDuration'] = '0';
-			that.scroller.style[vendor + "TransitionProperty"] = 'margin-top';
+// 			that.scroller.style[vendor + 'TransitionTimingFunction'] = 'ease-in-out';
+// 			that.scroller.style[vendor + "TransitionProperty"] = 'margin-top';
 			that._pos(x, y, USE_2D);
 			setTimeout(function () {
-				that._transitionTime(0);
+// 				that._transitionTime(0);
 				that._pos(x, y, USE_3D);
 				var endt = Date.now();
 				console.log("Removing 3d took", endt - startt, 'milliseconds');
@@ -660,20 +662,13 @@ iScroll.prototype = {
 	},
 
 	scrollTo: function (x, y, time, relative) {
-		var that = this,
-			step = x,
-			i, l;
-
-		that.stop();
-
-		if (!step.length) step = [{ x: x, y: y, time: time, relative: relative }];
-
-		for (i=0, l=step.length; i<l; i++) {
-			if (step[i].relative) { step[i].x = that.x - step[i].x; step[i].y = that.y - step[i].y; }
-			that.steps.push({ x: step[i].x, y: step[i].y, time: step[i].time || 0 });
-		}
-
-		that._startAni();
+		this.stop();
+		this.steps.push({
+			x: relative ? that.x - x : x,
+			y: relative ? that.y - y : y,
+			time: time || 0,
+		});
+		this._startAni();
 	},
 
 	scrollToElement: function (el, time) {
