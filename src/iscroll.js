@@ -8,7 +8,7 @@
 	function EventBus() {
 		var self = this;
 		var callbacks = {};
-		
+
 		function filter(arr, cb) {
 			var filtered = [];
 			for (var i = 0; i < arr.length; i++) {
@@ -16,14 +16,14 @@
 			}
 			return filtered;
 		}
-		
+
 		function remove(arr, obj) {
 			return filter(arr, function (elm) {
 				if (elm === obj) return false;
 				else return true;
 			});
 		}
-		
+
 		self.on = function (ev, cb) {
 			var arr = callbacks[ev] || [];
 			// Prevent duplicates
@@ -31,7 +31,7 @@
 			arr.push(cb);
 			callbacks[ev] = cb;
 		}
-		
+
 		self.once = function (ev, cb) {
 			function wrapper() {
 				self.off(ev, wrapper);
@@ -39,10 +39,17 @@
 			}
 			self.on(ev, wrapper);
 		}
-		
+
 		self.off = function (ev, cb) {
 			callbacks[ev] = remove(callbacks[ev], cb);
 		}
+	}
+
+	var MODE_3D = 1, MODE_2D = 2, MODE_DOM = 3;
+	function Animator(elm) {
+	function cubicBezier(t) {
+
+	}
 	}
 
 var USE_3D = 1, USE_2D = 2, USE_DOM = 3, USE_FORCE = 4;
@@ -185,6 +192,22 @@ iScroll.prototype = {
 		this.refresh();
 	},
 
+	_curPos: function () {
+		if (this.options.useTransform) {
+			// Very lame general purpose alternative to CSSMatrix
+			matrix = getComputedStyle(this.scroller, null)[vendor + 'Transform'].replace(/[^0-9-.,]/g, '').split(',');
+			return {
+				x: matrix[4] * 1,
+				y: matrix[5] * 1,
+			};
+		} else {
+			return {
+				x: getComputedStyle(this.scroller, null).left.replace(/[^0-9-]/g, '') * 1,
+				y: getComputedStyle(this.scroller, null).top.replace(/[^0-9-]/g, '') * 1,
+			};
+		}
+	},
+
 	_start: function (e) {
 		var that = this,
 			point = hasTouch ? e.touches[0] : e,
@@ -204,23 +227,27 @@ iScroll.prototype = {
 		that.dirX = 0;
 		that.dirY = 0;
 
-		if (that.options.useTransform) {
-			// Very lame general purpose alternative to CSSMatrix
-			matrix = getComputedStyle(that.scroller, null)[vendor + 'Transform'].replace(/[^0-9-.,]/g, '').split(',');
-			x = matrix[4] * 1;
-			y = matrix[5] * 1;
-		} else {
-			x = getComputedStyle(that.scroller, null).left.replace(/[^0-9-]/g, '') * 1;
-			y = getComputedStyle(that.scroller, null).top.replace(/[^0-9-]/g, '') * 1;
-		}
+		var pos = this._curPos();
 
 		if (that.options.useTransition) that._transitionTime(0);
-		
-		if (x != that.x || y != that.y) {
+
+		if (pos.x != that.x || pos.y != that.y) {
 			if (that.options.useTransition) that._unbind('webkitTransitionEnd');
 			else cancelFrame(that.aniTime);
 			that.steps = [];
-			that._pos(x, y, USE_FORCE, afterForce);
+			var endpos = that.scroller.style[vendor + 'Transform'].replace(/[^0-9,-.]/g, '').split(',');
+			var end = {
+				x: parseFloat(endpos[0]),
+				y: parseFloat(endpos[1]),
+			};
+			var dy = 0;
+			if (pos.y > end.y) {
+				dy = -100;
+			} else {
+				dy = 100;
+			}
+			console.log(pos, end, dy);
+			that._pos(pos.x, pos.y + dy, USE_FORCE, afterForce);
 		} else {
 			afterForce();
 		}
@@ -466,7 +493,7 @@ iScroll.prototype = {
 			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
 			return;
 		}
-		
+
 		if (time === 0) {
 			this.scroller.style[vendor + 'TransitionDuration'] = '0';
 		//this.scroller.style[vendor + "Transform"] = 'translate(' + this.x + 'px,' + this.y + 'px' + ')';
