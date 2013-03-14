@@ -44,7 +44,8 @@
 			callbacks[ev] = remove(callbacks[ev], cb);
 		}
 	}
-	
+
+var USE_3D = 1, USE_2D = 2, USE_DOM = 3;
 var m = Math,
 	mround = function (r) { return r >> 0; },
 	vendor = (/webkit/i).test(navigator.appVersion) ? 'webkit' :
@@ -184,23 +185,6 @@ iScroll.prototype = {
 		this.refresh();
 	},
 
-	_pos: function (x, y) {
-		x = this.hScroll ? x : 0;
-		y = this.vScroll ? y : 0;
-
-		if (this.options.useTransform) {
-			this.scroller.style[vendor + 'Transform'] = trnOpen + x + 'px,' + y + 'px' + trnClose + ' scale(' + this.scale + ')';
-		} else {
-			x = mround(x);
-			y = mround(y);
-			this.scroller.style.left = x + 'px';
-			this.scroller.style.top = y + 'px';
-		}
-
-		this.x = x;
-		this.y = y;
-	},
-
 	_start: function (e) {
 		var that = this,
 			point = hasTouch ? e.touches[0] : e,
@@ -236,7 +220,7 @@ iScroll.prototype = {
 			if (that.options.useTransition) that._unbind('webkitTransitionEnd');
 			else cancelFrame(that.aniTime);
 			that.steps = [];
-			that._pos(x, y);
+			that._pos(x, y, USE_3D);
 		}
 
 		that.startX = that.x;
@@ -262,7 +246,7 @@ iScroll.prototype = {
 			newY = that.y + deltaY,
 			timestamp = e.timeStamp || Date.now();
 
-		if (that.options.onBeforeScrollMove) that.options.onBeforeScrollMove.call(that, e);
+//		if (that.options.onBeforeScrollMove) that.options.onBeforeScrollMove.call(that, e);
 
 		that.pointX = point.pageX;
 		that.pointY = point.pageY;
@@ -296,17 +280,17 @@ iScroll.prototype = {
 		}
 
 		that.moved = true;
-		that._pos(newX, newY);
+		that._pos(newX, newY, USE_3D);
 		that.dirX = deltaX > 0 ? -1 : deltaX < 0 ? 1 : 0;
 		that.dirY = deltaY > 0 ? -1 : deltaY < 0 ? 1 : 0;
 
-		if (timestamp - that.startTime > 300) {
-			that.startTime = timestamp;
-			that.startX = that.x;
-			that.startY = that.y;
-		}
+//		if (timestamp - that.startTime > 300) {
+//			that.startTime = timestamp;
+//			that.startX = that.x;
+//			that.startY = that.y;
+//		}
 
-		if (that.options.onScrollMove) that.options.onScrollMove.call(that, e);
+//		if (that.options.onScrollMove) that.options.onScrollMove.call(that, e);
 	},
 
 	_end: function (e) {
@@ -442,11 +426,19 @@ iScroll.prototype = {
 		that.moved = true;
 
 		if (that.options.useTransition) {
-			that._transitionTime(step.time);
-			that._pos(step.x, step.y);
-			that.animating = false;
-			if (step.time) that._bind('webkitTransitionEnd');
-			else that._resetPos(0);
+		that.scroller.style[vendor + 'TransitionDuration'] = '0';
+		that.scroller.style[vendor + "TransitionProperty"] = 'margin-top';
+			that._pos(that.x, that.y, USE_DOM);
+			setTimeout(function () {
+				that._pos(that.x, that.y, USE_2D);
+				setTimeout(function () {
+					that._transitionTime(step.time);
+					that._pos(step.x, step.y, USE_2D);
+					that.animating = false;
+					if (step.time) that._bind('webkitTransitionEnd');
+					else that._resetPos(0);
+				}, 0);
+			}, 0);
 			return;
 		}
 
@@ -480,14 +472,51 @@ iScroll.prototype = {
 		}
 		
 		if (time === 0) {
-			this.scroller.style[vendor + 'TransitionProperty'] = 'margin-top';
+			this.scroller.style[vendor + 'TransitionDuration'] = '0';
+		//this.scroller.style[vendor + "Transform"] = 'translate(' + this.x + 'px,' + this.y + 'px' + ')';
 			//this.scroller.style[vendor + 'TransitionDuration'] = '0';
 			//this.scroller.style[vendor + 'TransitionTimingFunction'] = 'step-start';
 		} else {
 			this.scroller.style[vendor + 'TransitionProperty'] = '-' + vendor.toLowerCase() + '-transform';
 			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
-			//this.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
+			this.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
 		}
+	},
+	_pos: function (x, y, kind) {
+		x = this.hScroll ? x : 0;
+		y = this.vScroll ? y : 0;
+
+		//use3d = false;
+		if (kind === USE_DOM || kind === undefined) {
+			x = mround(x);
+			y = mround(y);
+			this.scroller.style.left = x + 'px';
+			this.scroller.style.top = y + 'px';
+			this.scroller.style[vendor + "Transform"] = '';
+		} else {
+			var tr;
+			if (kind === USE_3D) {
+				tr = 'translate3d(' + x + 'px,' + y + 'px,0px)';
+			} else if (kind === USE_2D) {
+				tr = 'translate(' + x + 'px,' + y + 'px)';
+			} else {
+				throw "Unknown positioning kind!";
+			}
+			this.scroller.style[vendor + "Transform"] = tr;
+			this.scroller.style.left = '0px';
+			this.scroller.style.top = '0px';
+		}
+//		if (this.options.useTransform) {
+	//		this.scroller.style[vendor + 'Transform'] = trnOpen + x + 'px,' + y + 'px' + trnClose + ' scale(' + this.scale + ')';
+		//} else {
+//			x = mround(x);
+//			y = mround(y);
+//			this.scroller.style.left = x + 'px';
+//			this.scroller.style.top = y + 'px';
+		//}
+
+		this.x = x;
+		this.y = y;
 	},
 
 	_momentum: function (dist, time, maxDistUpper, maxDistLower, size) {

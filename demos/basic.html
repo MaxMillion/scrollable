@@ -99,6 +99,9 @@
 				bottom: 0px;
 				/*overflow: scroll;*/
 			}
+			.box .content .scroller {
+				width: 100%;
+			}
 			.box .list .item {
 				padding: 2px;
 				min-height: 68px;
@@ -121,7 +124,7 @@
 		<div class="box">
 			<div class="topbar">
 				<div class="scrolling">Scrolling</div>
-				<div class="button">Use bezier</div>
+				<div class="button">Use setTimeout</div>
 				<div class="clear"></div>
 			</div>
 
@@ -148,13 +151,13 @@
 				scrolling = $('.topbar .scrolling'),
 				button    = $('.topbar .button'),
 				iscroll,
-				usingBezier = false;
+				usingBezier = true;
 
 			for (var i = 0; i < 200; i++) {
 				var div = $('<div />');
 				div.addClass('item');
 				div.text("Item " + i);
-				div.append($('<img />').attr('src', 'http://lorempixel.com/64/64/?'+Math.random()));
+				div.append($('<img />').attr('src', 'http://lorempixel.com/64/64/?'+i));
 				list.append(div);
 			}
 
@@ -167,29 +170,27 @@
 				}
 			}
 
+			var opts = {
+				useTransform: true,
+				useTransition: true,
+			};
 			function toggleUseBezier () {
-				if (usingBezier) {
-					button.text("Use bezier");
-					iscroll.destroy();
-					iscroll = new iScroll(content[0], {
-						useTransition: false,
-						useTransform: true,
-					});
-					usingBezier = false;
-				} else {
+				if (opts.useTransition) {
 					button.text("Use setTimeout");
 					iscroll.destroy();
-					iscroll = new iScroll(content[0], {
-						useTransition: true,
-						useTransform: true,
-					});
+					opts.useTransition = false;
+					iscroll = new iScroll(content[0], opts);
 					usingBezier = true;
+				} else {
+					button.text("Use bezier");
+					iscroll.destroy();
+					opts.useTransition = true;
+					iscroll = new iScroll(content[0], opts);
+					usingBezier = false;
 				}
 			}
 
-			iscroll = new iScroll(content[0], {
-				useTransform        : true,
-			});
+			iscroll = new iScroll(content[0], opts);
 
 			button
 				.clickable()
