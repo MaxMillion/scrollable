@@ -47,9 +47,66 @@
 
 	var MODE_3D = 1, MODE_2D = 2, MODE_DOM = 3;
 	function Animator(elm) {
-	function cubicBezier(t) {
+		var self = this;
+		var steps = [];
+		var frameId = -1;
+		var running = false;
+		var xpos = 0;
+		var ypos = 0;
 
-	}
+		function stop(cb) {
+			cancelFrame(frameId);
+			steps = [];
+		}
+		function moveTo(x, y, t) {
+			stop(function () {
+				steps.push({
+					x: x, y: y, t: t || 0,
+				});
+				start();
+			});
+		}
+		function moveBy(x, y, t) {
+			stop(function () {
+				steps.push({
+					x: xpos - x, y: ypos - y, t: t || 0,
+				});
+				start();
+			});
+		}
+		function start() {
+			if (running) return;
+
+			var step = steps.shift();
+			if (step.x === xpos && step.y === ypos) return;
+
+			running = true;
+			setTime(step.time);
+			setPos(stop.x, step.y, MODE_3D);
+			on('transitionEnd', transitionEnd);
+		}
+		function transitionEnd() {
+			running = false;
+		}
+
+		var p0 = {x: 0   , y: 0};
+		var p1 = {x: 0.33, y: 0.66};
+		var p2 = {x: 0.66, y: 1};
+		var p3 = {x: 1   , y: 1};
+		function cubicBezier(t) {
+			var p = Math.pow;
+			function comp(t, c) {
+				return     p(1 - t, 3)           * p0[c] +
+					   3 * p(1 - t, 2) *  (t)    * p1[c] +
+					   3 *  (1 - t)    * p(t, 2) * p2[c] +
+					                     p(t, 3) * p3[c];
+			}
+
+			return {
+				x: comp(t, 'x'),
+				y: comp(t, 'y'),
+			};
+		}
 	}
 
 var USE_3D = 1, USE_2D = 2, USE_DOM = 3, USE_FORCE = 4;
@@ -239,6 +296,10 @@ iScroll.prototype = {
 			var end = {
 				x: parseFloat(endpos[0]),
 				y: parseFloat(endpos[1]),
+			};
+			var start = {
+				x: that.animationStartX,
+				y: that.animatianStartY,
 			};
 			var dy = 0;
 			if (pos.y > end.y) {
@@ -449,8 +510,9 @@ iScroll.prototype = {
 			return;
 		}
 
+		that.animationStartX = startX;
+		that.animationStartY = startY;
 		step = that.steps.shift();
-		that.currentStep = step;
 
 		if (step.x == startX && step.y == startY) step.time = 0;
 
