@@ -64,7 +64,7 @@
 		elm.style[vendor + 'TransformOrigin'] = '0 0';
 		elm.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
 
-		function stop(cb) {
+		function stop() {
 			cancelFrame(frameId);
 			steps = [];
 			cb();
@@ -97,6 +97,8 @@
 			if (!t) {
 				if (running) {
 					console.log("Attempt to move while scrolling");
+					// TODO: Smarter logic here
+					return;
 				}
 				setTime(0);
 				setPosition(x, y, MODE_3D);
@@ -110,13 +112,21 @@
 			start();
 		}
 
-		self.moveBy = moveBy;
-		function moveBy(x, y, t) {
-			stop(function () {
-				steps.push({
-					x: xpos - x, y: ypos - y, t: t || 0,
-				});
-				start();
+		// Required hack to stop a scrolling animation currently in progress
+		// on Android.
+		function forceStop() {
+			// TODO: If animating, predict landing position and interpolate
+			// to there based on estimated lag.
+			var endpos = that.scroller.style[vendor + 'Transform'].replace(/[^0-9,-.]/g, '').split(',');
+			var end = {
+				x: parseFloat(endpos[0]),
+				y: parseFloat(endpos[1]),
+			};
+			setTime(0);
+			setPosition(xpos, ypos, MODE_2D);
+			setTimeout(function () {
+				setPosition(xpos, ypos, MODE_3D);
+				cb();
 			});
 		}
 
@@ -341,32 +351,12 @@ iScroll.prototype = {
 
 		var pos = this.animator.currentPosition();
 
-		//if (that.options.useTransition) that._transitionTime(0);
-
 		if (pos.x != that.x || pos.y != that.y) {
-			if (that.options.useTransition) that._unbind('webkitTransitionEnd');
-			else cancelFrame(that.aniTime);
-			that.steps = [];
-			var endpos = that.scroller.style[vendor + 'Transform'].replace(/[^0-9,-.]/g, '').split(',');
-			var end = {
-				x: parseFloat(endpos[0]),
-				y: parseFloat(endpos[1]),
-			};
-			var start = {
-				x: that.animationStartX,
-				y: that.animatianStartY,
-			};
-			var dy = 0;
-			if (pos.y > end.y) {
-				dy = -100;
-			} else {
-				dy = 100;
-			}
-			console.log(pos, end, dy);
-			that._pos(pos.x, pos.y + dy, USE_FORCE, afterForce);
-		} else {
-			afterForce();
+			that.animator.moveTo(pos.x, pos.y);
+			that.x = pos.x;
+			that.y = pos.y;
 		}
+		afterForce();
 
 		function afterForce() {
 			that.startX = that.x;
@@ -509,7 +499,7 @@ iScroll.prototype = {
 	_resetPos: function (time) {
 		var that = this,
 			resetX = that.x >= 0 ? 0 : that.x < that.maxScrollX ? that.maxScrollX : that.x,
-			resetY = that.y >= 0 || that.maxScrollY > 0 ? 0 : that.y < that.maxScrollY ? that.maxScrollY : that.y;
+			resetY = that.y >= 0 ? 0 : that.y < that.maxScrollY ? that.maxScrollY : that.y;
 
 		if (resetX == that.x && resetY == that.y) {
 			if (that.moved) {
@@ -536,160 +526,20 @@ iScroll.prototype = {
 		this._end(e);
 	},
 
-	_transitionEnd: function (e) {
-		var that = this;
-
-		if (e.target != that.scroller) return;
-
-		that._unbind('webkitTransitionEnd');
-
-		that._startAni();
+	scrollTo: function (x, y, time, relative) {
+		if (relative) throw "I broke relative scrolling sorry";
+		this.animator.moveTo(x, y, time);
 	},
 
-	/**
-	 *
-	 * Utilities
-	 *
-	 */
-	_startAni: function () {
-		throw "You shouldn't really call _startAni anymore.";
-		var that = this,
-			startX = that.x, startY = that.y,
-			startTime = Date.now(),
-			step, easeOut,
-			animate;
-
-		if (that.animating) return;
-
-		if (!that.steps.length) {
-			that._resetPos(400);
-			return;
-		}
-
-		that.animationStartX = startX;
-		that.animationStartY = startY;
-		step = that.steps.shift();
-
-		if (step.x == startX && step.y == startY) step.time = 0;
-
-		that.animating = true;
-		that.moved = true;
-
-		if (that.options.useTransition) {
-			that._transitionTime(step.time);
-			that._pos(step.x, step.y, USE_3D);
-			that.animating = false;
-			if (step.time) that._bind('webkitTransitionEnd');
-			else that._resetPos(0);
-			return;
-		}
-
-		animate = function () {
-			var now = Date.now(),
-				newX, newY;
-
-			if (now >= startTime + step.time) {
-				that._pos(step.x, step.y);
-				that.animating = false;
-				if (that.options.onAnimationEnd) that.options.onAnimationEnd.call(that);			// Execute custom code on animation end
-				that._startAni();
-				return;
-			}
-
-			now = (now - startTime) / step.time - 1;
-			easeOut = m.sqrt(1 - now * now);
-			newX = (step.x - startX) * easeOut + startX;
-			newY = (step.y - startY) * easeOut + startY;
-			that._pos(newX, newY);
-			if (that.animating) that.aniTime = nextFrame(animate);
-		};
-
-		animate();
-	},
-
-	_transitionTime: function (time) {
-// 		return;
-		throw "Don't use transitionTime";
-		if (!this.options.useTransform) {
-			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
-			return;
-		}
-
-		if (time === 0) {
-			this.scroller.style[vendor + 'TransitionDuration'] = '0';
-		//this.scroller.style[vendor + "Transform"] = 'translate(' + this.x + 'px,' + this.y + 'px' + ')';
-			//this.scroller.style[vendor + 'TransitionDuration'] = '0';
-			//this.scroller.style[vendor + 'TransitionTimingFunction'] = 'step-start';
-		} else {
-			this.scroller.style[vendor + 'TransitionProperty'] = '-' + vendor.toLowerCase() + '-transform';
-			this.scroller.style[vendor + 'TransitionDuration'] = time + 'ms';
-			this.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
-		}
-	},
 	_pos: function (x, y, kind, cb) {
+		x = this.hScroll ? x : 0;
+		y = this.vScroll ? y : 0;
+
 		this.animator.moveTo(x, y);
 		this.x = x;
 		this.y = y;
 		if (cb) cb();
 		return;
-
-	var that = this;
-		x = this.hScroll ? x : 0;
-		y = this.vScroll ? y : 0;
-
-		//use3d = false;
-		if (kind === USE_FORCE) {
-			var startt = Date.now();
-			var curx = that.x, cury = that.y;
-			that.scroller.style[vendor + 'TransitionDuration'] = '0';
-// 			that.scroller.style[vendor + 'TransitionTimingFunction'] = 'ease-in-out';
-// 			that.scroller.style[vendor + "TransitionProperty"] = 'margin-top';
-			that._pos(x, y, USE_2D);
-			setTimeout(function () {
-// 				that._transitionTime(0);
-				that._pos(x, y, USE_3D);
-				var endt = Date.now();
-				console.log("Removing 3d took", endt - startt, 'milliseconds');
-				cb();
-				setTimeout(function () {
-					console.log("Adding 3d took", Date.now() - endt, 'milliseconds');
-					console.log("Total operation took", Date.now() - startt, 'milliseconds');
-				}, 0);
-			}, 0);
-		} else if (kind === USE_DOM) {
-			that.options.useTransform = false;
-			x = mround(x);
-			y = mround(y);
-			var s = this.scroller.style;
-			s.left = x + 'px';
-			s.top = y + 'px';
-			console.log(x, y, s.left, s.top);
-			this.scroller.style[vendor + "Transform"] = '';
-		} else {
-			that.options.useTransform = true;
-			var tr;
-			if (kind === USE_3D || kind === undefined) {
-				tr = 'translate3d(' + x + 'px,' + y + 'px,0px)';
-			} else if (kind === USE_2D) {
-				tr = 'translate(' + x + 'px,' + y + 'px)';
-			} else {
-				throw "Unknown positioning kind!";
-			}
-			this.scroller.style[vendor + "Transform"] = tr;
-			this.scroller.style.left = '0px';
-			this.scroller.style.top = '0px';
-		}
-//		if (this.options.useTransform) {
-	//		this.scroller.style[vendor + 'Transform'] = trnOpen + x + 'px,' + y + 'px' + trnClose + ' scale(' + this.scale + ')';
-		//} else {
-//			x = mround(x);
-//			y = mround(y);
-//			this.scroller.style.left = x + 'px';
-//			this.scroller.style.top = y + 'px';
-		//}
-
-		this.x = x;
-		this.y = y;
 	},
 
 	_momentum: function (dist, time, maxDistUpper, maxDistLower, size) {
@@ -787,36 +637,6 @@ iScroll.prototype = {
 		that._resetPos(200);
 	},
 
-	scrollTo: function (x, y, time, relative) {
-		if (relative) throw "I broke relative scrolling sorry";
-		this.animator.moveTo(x, y, time);
-		return;
-
-		this.stop();
-		this.steps.push({
-			x: relative ? that.x - x : x,
-			y: relative ? that.y - y : y,
-			time: time || 0,
-		});
-		this._startAni();
-	},
-
-	scrollToElement: function (el, time) {
-		var that = this, pos;
-		el = el.nodeType ? el : that.scroller.querySelector(el);
-		if (!el) return;
-
-		pos = that._offset(el);
-		pos.left += that.wrapperOffsetLeft;
-		pos.top += that.wrapperOffsetTop;
-
-		pos.left = pos.left > 0 ? 0 : pos.left < that.maxScrollX ? that.maxScrollX : pos.left;
-		pos.top = pos.top > 0 ? 0 : pos.top < that.maxScrollY ? that.maxScrollY : pos.top;
-		time = time === undefined ? m.max(m.abs(pos.left)*2, m.abs(pos.top)*2) : time;
-
-		that.scrollTo(pos.left, pos.top, time);
-	},
-
 	disable: function () {
 		this.stop();
 		this._resetPos(0);
@@ -831,13 +651,6 @@ iScroll.prototype = {
 	enable: function () {
 		this.enabled = true;
 	},
-
-	stop: function () {
-		cancelFrame(this.aniTime);
-		this.steps = [];
-		this.moved = false;
-		this.animating = false;
-	}
 };
 
 if (typeof exports !== 'undefined') exports.iScroll = iScroll;
