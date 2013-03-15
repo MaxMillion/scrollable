@@ -332,16 +332,12 @@ iScroll.prototype = {
 
 	_start: function (e) {
 		var that = this,
-			point = hasTouch ? e.touches[0] : e,
-			matrix, x, y;
+			point = hasTouch ? e.touches[0] : e;
 
 		if (!that.enabled) return;
 
-		if (that.options.onBeforeScrollStart) that.options.onBeforeScrollStart.call(that, e);
+		e.preventDefault();
 
-		that.moved = false;
-		that.animating = false;
-		that.zoomed = false;
 		that.distX = 0;
 		that.distY = 0;
 		that.absDistX = 0;
@@ -366,8 +362,6 @@ iScroll.prototype = {
 
 			that.startTime = e.timeStamp || Date.now();
 
-			if (that.options.onScrollStart) that.options.onScrollStart.call(that, e);
-
 			that._bind(MOVE_EV);
 			that._bind(END_EV);
 			that._bind(CANCEL_EV);
@@ -382,8 +376,6 @@ iScroll.prototype = {
 			newX = that.x + deltaX,
 			newY = that.y + deltaY,
 			timestamp = e.timeStamp || Date.now();
-
-//		if (that.options.onBeforeScrollMove) that.options.onBeforeScrollMove.call(that, e);
 
 		that.pointX = point.pageX;
 		that.pointY = point.pageY;
@@ -420,14 +412,6 @@ iScroll.prototype = {
 		that._pos(newX, newY, USE_3D);
 		that.dirX = deltaX > 0 ? -1 : deltaX < 0 ? 1 : 0;
 		that.dirY = deltaY > 0 ? -1 : deltaY < 0 ? 1 : 0;
-
-//		if (timestamp - that.startTime > 300) {
-//			that.startTime = timestamp;
-//			that.startX = that.x;
-//			that.startY = that.y;
-//		}
-
-//		if (that.options.onScrollMove) that.options.onScrollMove.call(that, e);
 	},
 
 	_end: function (e) {
@@ -447,34 +431,9 @@ iScroll.prototype = {
 		that._unbind(END_EV);
 		that._unbind(CANCEL_EV);
 
-		if (that.options.onBeforeScrollEnd) that.options.onBeforeScrollEnd.call(that, e);
-
-		if (!that.moved) {
-			if (hasTouch) {
-				// Find the last touched element
-				target = point.target;
-				while (target.nodeType != 1) target = target.parentNode;
-
-				if (target.tagName != 'SELECT' && target.tagName != 'INPUT' && target.tagName != 'TEXTAREA') {
-					ev = document.createEvent('MouseEvents');
-					ev.initMouseEvent('click', true, true, e.view, 1,
-						point.screenX, point.screenY, point.clientX, point.clientY,
-						e.ctrlKey, e.altKey, e.shiftKey, e.metaKey,
-						0, null);
-					ev._fake = true;
-					target.dispatchEvent(ev);
-				}
-			}
-
-			that._resetPos(200);
-
-			if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);
-			return;
-		}
-
 		if (duration < 300 && that.options.momentum) {
 			momentumX = newPosX ? that._momentum(newPosX - that.startX, duration, -that.x, that.scrollerW - that.wrapperW + that.x, that.options.bounce ? that.wrapperW : 0) : momentumX;
-			momentumY = newPosY ? that._momentum(newPosY - that.startY, duration, -that.y, (that.maxScrollY < 0 ? that.scrollerH - that.wrapperH + that.y : 0), that.options.bounce ? that.wrapperH : 0) : momentumY;
+			momentumY = newPosY ? that._momentum(newPosY - that.startY, duration, -that.y, that.scrollerH - that.wrapperH + that.y, that.options.bounce ? that.wrapperH : 0) : momentumY;
 
 			newPosX = that.x + momentumX.dist;
 			newPosY = that.y + momentumY.dist;
@@ -494,6 +453,31 @@ iScroll.prototype = {
 
 		that._resetPos(200);
 		if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);
+	},
+
+	_momentum: function (dist, time, maxDistUpper, maxDistLower, size) {
+		var deceleration = 0.0006,
+			speed = m.abs(dist) / time,
+			newDist = (speed * speed) / (2 * deceleration),
+			newTime = 0, outsideDist = 0;
+
+		// Proportinally reduce speed if we are outside of the boundaries
+		if (dist > 0 && newDist > maxDistUpper) {
+			outsideDist = size / (6 / (newDist / speed * deceleration));
+			maxDistUpper = maxDistUpper + outsideDist;
+			speed = speed * maxDistUpper / newDist;
+			newDist = maxDistUpper;
+		} else if (dist < 0 && newDist > maxDistLower) {
+			outsideDist = size / (6 / (newDist / speed * deceleration));
+			maxDistLower = maxDistLower + outsideDist;
+			speed = speed * maxDistLower / newDist;
+			newDist = maxDistLower;
+		}
+
+		newDist = newDist * (dist < 0 ? -1 : 1);
+		newTime = speed / deceleration;
+
+		return { dist: newDist, time: mround(newTime) };
 	},
 
 	_resetPos: function (time) {
@@ -540,31 +524,6 @@ iScroll.prototype = {
 		this.y = y;
 		if (cb) cb();
 		return;
-	},
-
-	_momentum: function (dist, time, maxDistUpper, maxDistLower, size) {
-		var deceleration = 0.0006,
-			speed = m.abs(dist) / time,
-			newDist = (speed * speed) / (2 * deceleration),
-			newTime = 0, outsideDist = 0;
-
-		// Proportinally reduce speed if we are outside of the boundaries
-		if (dist > 0 && newDist > maxDistUpper) {
-			outsideDist = size / (6 / (newDist / speed * deceleration));
-			maxDistUpper = maxDistUpper + outsideDist;
-			speed = speed * maxDistUpper / newDist;
-			newDist = maxDistUpper;
-		} else if (dist < 0 && newDist > maxDistLower) {
-			outsideDist = size / (6 / (newDist / speed * deceleration));
-			maxDistLower = maxDistLower + outsideDist;
-			speed = speed * maxDistLower / newDist;
-			newDist = maxDistLower;
-		}
-
-		newDist = newDist * (dist < 0 ? -1 : 1);
-		newTime = speed / deceleration;
-
-		return { dist: newDist, time: mround(newTime) };
 	},
 
 	_offset: function (el) {
