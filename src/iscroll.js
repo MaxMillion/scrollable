@@ -76,8 +76,7 @@
 			var useTransform = true;
 			if (useTransform) {
 				// Very lame general purpose alternative to CSSMatrix
-				var matrix = style[vendor + 'Transform']
-					.replace(/[^0-9-.,]/g, '').split(',');
+				var matrix = style[vendor + 'Transform'].replace(/[^0-9-.,]/g, '').split(',');
 				return {
 					x: +matrix[4] || 0,
 					y: +matrix[5] || 0,
@@ -186,6 +185,74 @@
 		}
 	}
 
+	// Arguments coencide with the the arguments to the css interpolation
+	// function cubic-bezier().
+	function CubicBezier(p1x, p1y, p2x, p2y) {
+		var self = this;
+		var p0x = 0;
+		var p0y = 0;
+		var p3x = 1;
+		var p3y = 1;
+
+		// Compute the (x, y) value of the bezier curve at a given point.
+		// As with the css varient, t \in [0..1]
+		self.at = function (t) {
+			var p = Math.pow;
+
+			// This is just math, nothing tricky.
+			// http://en.wikipedia.org/wiki/B%C3%A9zier_curve#Cubic_B.C3.A9zier_curves
+			var c0 =     p(1 - t, 3);
+			var c1 = 3 * p(1 - t, 2) * t;
+			var c2 = 3 * (1 - t)   *  p(t, 2);
+			var c3 =                  p(t, 3);
+
+			return {
+				x: c0*p0x + c1*p1x + c2*p2x + c3*p3x,
+				y: c0*p0y + c1*p1y + c2*p2y + c3*p3y,
+			};
+		}
+
+		self.css = function () {
+			// p0 is fixed at (0, 0), and p3 is fixed at (1, 1) according to
+			// the CSS specifications.
+			return 'cubic-bezier(' + p1x + ',' + p1y + ',' + p2x + ',' + p2y + ')';
+		}
+
+		self.set = function (np0x, np0y, np1x, np1y, np2x, np2y, np3x, np3y) {
+			p0x = np0x; p0y = np0y;
+			p1x = np1x; p1y = np1y;
+			p2x = np2x; p2y = np2y;
+			p3x = np3x; p3y = np3y;
+		}
+
+		self.split = function (t) {
+			// http://en.wikipedia.org/wiki/De_Casteljau's_algorithm
+			var p01x = (p1x - p0x)*t + p0x
+			var p01y = (p1y - p0y)*t + p0x
+
+			var p12x = (p2x - p1x)*t + p1x
+			var p12y = (p2y - p1y)*t + p1y
+
+			var p23x = (p3x - p2x)*t + p2x
+			var p23y = (p3y - p2y)*t + p2y
+
+			var p012x = (p12x - p01x)*t + p01x
+			var p012y = (p12y - p01y)*t + p01y
+
+			var p123x = (p23x - p12x)*t + p12x
+			var p123y = (p23y - p12y)*t + p12y
+
+			var p0123x = (p123x - p012x)*t + p012x
+			var p0123y = (p123y - p012y)*t + p012y
+
+			var left = new CubicBezier();
+			left.set(p0x, p0y, p01x, p01y, p012x, p012y, p0123x, p0123y);
+			var right = new CubicBezier();
+			right.set(p0123x, p0123y, p123x, p123y, p23x, p23y, p3x, p3y);
+			return [left, right];
+		}
+	}
+
 var USE_3D = 1, USE_2D = 2, USE_DOM = 3, USE_FORCE = 4;
 var m = Math,
 	mround = function (r) { return r >> 0; },
@@ -282,15 +349,7 @@ var m = Math,
 		that.options.vScrollbar = that.options.vScroll && that.options.vScrollbar;
 		that.options.useTransition = hasTransitionEnd && that.options.useTransition;
 
-		// Set some default styles
 		that.animator = new Animator(that.scroller);
-// 		that.scroller.style[vendor + 'TransitionProperty'] = that.options.useTransform ? '-' + vendor.toLowerCase() + '-transform' : 'top left';
-// 		that.scroller.style[vendor + 'TransitionDuration'] = '0';
-// 		that.scroller.style[vendor + 'TransformOrigin'] = '0 0';
-// 		if (that.options.useTransition) that.scroller.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33,0.66,0.66,1)';
-//
-// 		if (that.options.useTransform) that.scroller.style[vendor + 'Transform'] = trnOpen + that.x + 'px,' + that.y + 'px' + trnClose;
-// 		else that.scroller.style.cssText += ';position:absolute;top:' + that.y + 'px;left:' + that.x + 'px';
 
 		that.refresh();
 
@@ -325,9 +384,6 @@ iScroll.prototype = {
 
 	_resize: function () {
 		this.refresh();
-	},
-
-	_curPos: function () {
 	},
 
 	_start: function (e) {
@@ -432,14 +488,21 @@ iScroll.prototype = {
 		that._unbind(CANCEL_EV);
 
 		if (duration < 300 && that.options.momentum) {
-			momentumX = newPosX ? that._momentum(newPosX - that.startX, duration, -that.x, that.scrollerW - that.wrapperW + that.x, that.options.bounce ? that.wrapperW : 0) : momentumX;
-			momentumY = newPosY ? that._momentum(newPosY - that.startY, duration, -that.y, that.scrollerH - that.wrapperH + that.y, that.options.bounce ? that.wrapperH : 0) : momentumY;
+			if (newPosX) {
+				momentumX = that._momentum(newPosX - that.startX, duration);
+			}
+			if (newPosY) {
+				momentumY = that._momentum(newPosY - that.startY, duration);
+			}
 
 			newPosX = that.x + momentumX.dist;
 			newPosY = that.y + momentumY.dist;
 
- 			if ((that.x > 0 && newPosX > 0) || (that.x < that.maxScrollX && newPosX < that.maxScrollX)) momentumX = { dist:0, time:0 };
- 			if ((that.y > 0 && newPosY > 0) || (that.y < that.maxScrollY && newPosY < that.maxScrollY)) momentumY = { dist:0, time:0 };
+
+			if (newPosX > 0) newPosX = 0;
+			else if (newPosX < that.maxScrollX) newPosX = that.maxScrollX;
+			if (newPosY > 0) newPosY = 0;
+			else if (newPosY < that.maxScrollY) newPosY = that.maxScrollY;
 		}
 
 		if (momentumX.dist || momentumY.dist) {
@@ -451,33 +514,33 @@ iScroll.prototype = {
 			return;
 		}
 
+// 		that._addBounce(newPosX, newPosY);
+
 		that._resetPos(200);
 		if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);
 	},
 
-	_momentum: function (dist, time, maxDistUpper, maxDistLower, size) {
-		var deceleration = 0.0006,
-			speed = m.abs(dist) / time,
-			newDist = (speed * speed) / (2 * deceleration),
-			newTime = 0, outsideDist = 0;
-
-		// Proportinally reduce speed if we are outside of the boundaries
-		if (dist > 0 && newDist > maxDistUpper) {
-			outsideDist = size / (6 / (newDist / speed * deceleration));
-			maxDistUpper = maxDistUpper + outsideDist;
-			speed = speed * maxDistUpper / newDist;
-			newDist = maxDistUpper;
-		} else if (dist < 0 && newDist > maxDistLower) {
-			outsideDist = size / (6 / (newDist / speed * deceleration));
-			maxDistLower = maxDistLower + outsideDist;
-			speed = speed * maxDistLower / newDist;
-			newDist = maxDistLower;
+	_bound(newVal, momentum, minVal, maxVal) {
+		var endX, maxX = this.maxScrollX;
+		var endY, maxY = this.maxScrollY;
+		if (newX > 0) endX = 0;
+		else if (newX < maxX) endX = maxX;
+		if (newY > 0) endY = 0;
+		else if (newY < maxY) endY = maxY;
+		if (endX !== undefined || endY !== undefined) {
+			that.scrollTo()
 		}
+	}
 
-		newDist = newDist * (dist < 0 ? -1 : 1);
-		newTime = speed / deceleration;
+	_momentum: function (dist, time) {
+		var abs = Math.abs;
+		var a = -0.0006;
+		var v = dist / time;
 
-		return { dist: newDist, time: mround(newTime) };
+		return {
+			dist: (v * v) / (2 * a) * (v < 0 ? 1 : -1),
+			time: round(abs(v / a)),
+		};
 	},
 
 	_resetPos: function (time) {
