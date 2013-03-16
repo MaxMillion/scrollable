@@ -254,7 +254,9 @@
 	}
 
 var USE_3D = 1, USE_2D = 2, USE_DOM = 3, USE_FORCE = 4;
-var m = Math,
+var m = Math;
+var max = Math.max;
+var
 	mround = function (r) { return r >> 0; },
 	vendor = (/webkit/i).test(navigator.appVersion) ? 'webkit' :
 		(/firefox/i).test(navigator.userAgent) ? 'Moz' :
@@ -488,49 +490,30 @@ iScroll.prototype = {
 		that._unbind(CANCEL_EV);
 
 		if (duration < 300 && that.options.momentum) {
-			if (newPosX) {
-				momentumX = that._momentum(newPosX - that.startX, duration);
-			}
-			if (newPosY) {
-				momentumY = that._momentum(newPosY - that.startY, duration);
-			}
+			momentumX = that._momentum(newPosX - that.startX, duration);
+			momentumY = that._momentum(newPosY - that.startY, duration);
 
 			newPosX = that.x + momentumX.dist;
 			newPosY = that.y + momentumY.dist;
 
 
+			// TODO: Something better here. We should really slice the bezier
+			// curve that this animation would represent at the point where
+			// it would go past the end, then add a bounce transition (if on iOS)
+			// or stop (if on Android).
 			if (newPosX > 0) newPosX = 0;
 			else if (newPosX < that.maxScrollX) newPosX = that.maxScrollX;
 			if (newPosY > 0) newPosY = 0;
 			else if (newPosY < that.maxScrollY) newPosY = that.maxScrollY;
+
+			if (momentumX.dist || momentumY.dist) {
+				newDuration = max(max(momentumX.time, momentumY.time), 10);
+				this.scrollTo(newPosX, newPosY, newDuration);
+				return;
+			}
 		}
-
-		if (momentumX.dist || momentumY.dist) {
-			newDuration = m.max(m.max(momentumX.time, momentumY.time), 10);
-
-			that.scrollTo(mround(newPosX), mround(newPosY), newDuration);
-
-			if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);
-			return;
-		}
-
-// 		that._addBounce(newPosX, newPosY);
-
 		that._resetPos(200);
-		if (that.options.onTouchEnd) that.options.onTouchEnd.call(that, e);
 	},
-
-	_bound(newVal, momentum, minVal, maxVal) {
-		var endX, maxX = this.maxScrollX;
-		var endY, maxY = this.maxScrollY;
-		if (newX > 0) endX = 0;
-		else if (newX < maxX) endX = maxX;
-		if (newY > 0) endY = 0;
-		else if (newY < maxY) endY = maxY;
-		if (endX !== undefined || endY !== undefined) {
-			that.scrollTo()
-		}
-	}
 
 	_momentum: function (dist, time) {
 		var abs = Math.abs;
