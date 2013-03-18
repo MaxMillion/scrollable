@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Cubic Bezier Tests</title>
+  <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.11.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="http://code.jquery.com/qunit/qunit-1.11.0.js"></script>
+  <script src="../src/cubicBezier.js"></script>
+  <script>
+test("flat curve", function () {
+	var b = new CubicBezier(1.0, 1.0, 0.0, 0.0);
+	var val = b.at(0.5);
+	deepEqual(val, {x: 0.5, y: 0.5});
+});
+test("flat curve split", function () {
+	var b = new CubicBezier(1.0, 1.0, 0.0, 0.0);
+	var splits = b.split(0.5);
+	deepEqual(splits[0].at(0.5), {x: 0.5, y: 0.5});
+	deepEqual(splits[0].at(0.25), {x: 0.25, y: 0.25});
+});
+  </script>
+</body>
+</html>
