@@ -122,10 +122,12 @@
 				curpos.x += dpos.x;
 				curpos.y += dpos.y;
 				steps.push({
-					x: curpos.x, y: curpos.y, t: t / numSteps,
+					x: curpos.x,
+					y: curpos.y,
 				});
 			}
-			start();
+			setTime(t / numSteps);
+			start(t / numSteps);
 		}
 
 		function makeSplits(numSteps, stepTime) {
@@ -158,7 +160,7 @@
 			});
 		}
 
-		function start() {
+		function start(time) {
 			if (running) return;
 			running = false;
 			if (steps.length < 1) return;
@@ -167,16 +169,19 @@
 			if (step.x === xpos && step.y === ypos) return;
 
 			running = true;
-			setTime(step.t);
 			setPosition(stop.x, step.y, MODE_3D);
+			setTimeout(function () {
+				running = false;
+				start(time);
+			}, time + 20);
 		}
 
-		elm.addEventListener('webkitTransitionEnd', transitionEnd, false);
-		elm.addEventListener('transitionend', transitionEnd, false);
-		function transitionEnd() {
-			running = false;
-			start();
-		}
+// 		elm.addEventListener('webkitTransitionEnd', transitionEnd, false);
+// 		elm.addEventListener('transitionend', transitionEnd, false);
+// 		function transitionEnd() {
+// 			running = false;
+// 			start();
+// 		}
 
 		var p0 = {x: 0   , y: 0};
 		var p1 = {x: 0.33, y: 0.66};
