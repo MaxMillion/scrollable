@@ -7,17 +7,18 @@ function CubicBezier(p1x, p1y, p2x, p2y) {
 	var p3x = 1;
 	var p3y = 1;
 
+	var c0, c1, c2, c3;
+	var p = Math.pow;
+
 	// Compute the (x, y) value of the bezier curve at a given point.
 	// As with the css varient, t \in [0..1]
 	self.at = function (t) {
-		var p = Math.pow;
-
 		// This is just math, nothing tricky.
 		// http://en.wikipedia.org/wiki/B%C3%A9zier_curve#Cubic_B.C3.A9zier_curves
-		var c0 =     p(1 - t, 3);
-		var c1 = 3 * p(1 - t, 2) * t;
-		var c2 = 3 * (1 - t)   *  p(t, 2);
-		var c3 =                  p(t, 3);
+		c0 =     p(1 - t, 3);
+		c1 = 3 * p(1 - t, 2) * t;
+		c2 = 3 * (1 - t)   *  p(t, 2);
+		c3 =                  p(t, 3);
 
 		return {
 			x: c0*p0x + c1*p1x + c2*p2x + c3*p3x,

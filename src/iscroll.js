@@ -112,22 +112,133 @@
 			console.log("Actuall scrolling for a time: ", t, "ms");
 // 			running = false;
 
+			var now = Date.now();
+
+			running = true;
+			startChunkingLoop1(x, y, t);
+// 			loop(now, currentPosition(), {x: x, y: y}, now + t);
+// 			var numSteps = Math.ceil(t / 100);
+// 			var curpos = currentPosition();
+// 			var dpos = {
+// 				x: (x - curpos.x) / numSteps,
+// 				y: (y - curpos.y) / numSteps,
+// 			};
+// 			for (var i = 0; i < numSteps; i++) {
+// 				curpos.x += dpos.x;
+// 				curpos.y += dpos.y;
+// 				steps.push({
+// 					x: curpos.x,
+// 					y: curpos.y,
+// 				});
+// 			}
+// 			setTime(t / numSteps);
+// 			start(t / numSteps);
+		}
+
+		function startChunkingLoop1(x, y, t) {
 			var numSteps = Math.ceil(t / 100);
+			var stepTime = t / numSteps;
+			var curpos = currentPosition();
+			var sx = curpos.x, sy = curpos.y;
+			var dx = (x - sx) / numSteps;
+			var dy = (y - sy) / numSteps;
+			var i = 0;
+
+			setTime(stepTime);
+			function loop() {
+				sx += dx;
+				sy += dy;
+				i++;
+				setPosition(sx, sy, MODE_3D);
+				if (i >= numSteps) running = false;
+				if (running) setTimeout(loop, stepTime);
+			}
+			loop();
+		}
+
+		function startFrameLoop3(x, y, t) {
+			var curt = Date.now();
+			var newt = curt;
+			var endt = curt + t;
+
+			var curpos = currentPosition();
+			var sx = curpos.x, sy = curpos.y;
+			var dx = x - sx, dy = y - sy;
+
+			var dt, T, pos;
+			var bezier = new CubicBezier(0.33, 0.66, 0.66, 1);
+			setTime(0);
+
+			function loop3() {
+				newt = Date.now();
+				dt = newt - curt;
+				T = dt / t;
+				if (T >= 1.0) return;
+				pos = bezier.at(T);
+				setPosition(pos.x*dx + sx, pos.y*dy + sy, MODE_3D);
+				if (running) setTimeout(loop3, 0);
+			}
+
+			loop3();
+		}
+
+		function startFrameLoop2(x, y, t) {
+			var steps = [];
+			var numSteps = Math.ceil(t / 16.666666);
 			var curpos = currentPosition();
 			var dpos = {
 				x: (x - curpos.x) / numSteps,
 				y: (y - curpos.y) / numSteps,
 			};
-			for (var i = 0; i < numSteps; i++) {
+			var i = 0;
+			setTime(0);
+			function loop2() {
+				i++;
 				curpos.x += dpos.x;
 				curpos.y += dpos.y;
-				steps.push({
-					x: curpos.x,
-					y: curpos.y,
-				});
+				setPosition(curpos.x, curpos.y, MODE_3D);
+				if (i >= numSteps) return;
+				setTimeout(loop2, 0);
 			}
-			setTime(t / numSteps);
-			start(t / numSteps);
+			loop2();
+		}
+
+		function startFrameLoop1(x, y, t) {
+			var curpos = currentPosition();
+			var curx = curpos.x;
+			var cury = curpos.y;
+			var curt = Date.now();
+			var dx = (x - curx) / t;
+			var dy = (y - cury) / t;
+			var newt, dt;
+			setTime(0);
+			function loop1() {
+				newt = Date.now();
+				dt = newt - curt;
+				curt = newt;
+				curx += dx * dt;
+				cury += dy * dt;
+				setPosition(curx, cury, MODE_3D);
+				if (abs(curx - x) < 0.001 && abs(cury - y) < 0.001) return;
+				if (running) setTimeout(loop1, 0);
+			}
+			loop1();
+		}
+
+		function start(time) {
+			if (running) return;
+			running = false;
+			if (steps.length < 1) return;
+
+			var step = steps.shift();
+			if (step.x === xpos && step.y === ypos) return;
+
+			running = true;
+			setPosition(stop.x, step.y, MODE_3D);
+			setTimeout(function () {
+				running = false;
+				start(time);
+			}, time + 20);
 		}
 
 		function makeSplits(numSteps, stepTime) {
@@ -158,22 +269,6 @@
 				setPosition(xpos, ypos, MODE_3D);
 				cb();
 			});
-		}
-
-		function start(time) {
-			if (running) return;
-			running = false;
-			if (steps.length < 1) return;
-
-			var step = steps.shift();
-			if (step.x === xpos && step.y === ypos) return;
-
-			running = true;
-			setPosition(stop.x, step.y, MODE_3D);
-			setTimeout(function () {
-				running = false;
-				start(time);
-			}, time + 20);
 		}
 
 // 		elm.addEventListener('webkitTransitionEnd', transitionEnd, false);
@@ -225,6 +320,9 @@
 var USE_3D = 1, USE_2D = 2, USE_DOM = 3, USE_FORCE = 4;
 var m = Math;
 var max = Math.max;
+var min = Math.min;
+var abs = Math.abs;
+var sqrt = Math.sqrt;
 var
 	mround = function (r) { return r >> 0; },
 	vendor = (/webkit/i).test(navigator.appVersion) ? 'webkit' :
