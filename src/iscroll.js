@@ -115,7 +115,7 @@
 			var now = Date.now();
 
 			running = true;
-			startChunkingLoop1(x, y, t);
+			startTransitionLoop1(x, y, t);
 // 			loop(now, currentPosition(), {x: x, y: y}, now + t);
 // 			var numSteps = Math.ceil(t / 100);
 // 			var curpos = currentPosition();
@@ -133,6 +133,19 @@
 // 			}
 // 			setTime(t / numSteps);
 // 			start(t / numSteps);
+		}
+
+		function startTransitionLoop1(x, y, t) {
+			setTime(t);
+			setPosition(x, y, MODE_3D);
+			function loop() {
+				if (!running) {
+					forceStop();
+				} else {
+					setTimeout(loop, 50);
+				}
+			}
+			loop();
 		}
 
 		function startChunkingLoop1(x, y, t) {
