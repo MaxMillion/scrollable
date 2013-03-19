@@ -62,8 +62,8 @@
 '-transform';
 		elm.style[vendor + 'TransitionDuration'] = '0';
 		elm.style[vendor + 'TransformOrigin'] = '0 0';
-		elm.style[vendor + 'TransitionTimingFunction'] = 'linear';
-// 		elm.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
+// 		elm.style[vendor + 'TransitionTimingFunction'] = 'linear';
+		elm.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
 
 		function stop() {
 // 			cancelFrame(frameId);
@@ -115,7 +115,7 @@
 			var now = Date.now();
 
 			running = true;
-			startTransitionLoop1(x, y, t);
+			animationStrategies[currentAnimationStrategy](x, y, t);
 // 			loop(now, currentPosition(), {x: x, y: y}, now + t);
 // 			var numSteps = Math.ceil(t / 100);
 // 			var curpos = currentPosition();
@@ -135,7 +135,21 @@
 // 			start(t / numSteps);
 		}
 
-		function startTransitionLoop1(x, y, t) {
+		self.nextAnimationStrategy = function () {
+			currentAnimationStrategy = (currentAnimationStrategy + 1) % animationStrategies.length;
+			return animationStrategies[currentAnimationStrategy].name.slice(5, -4);
+		};
+
+		var currentAnimationStrategy = 0;
+		var animationStrategies = [
+			startTransitionLoop,
+			startChunkingLoop,
+			startBezierFrameLoop,
+			startLinearFrameLoop,
+			startLinearTimeCompensatingFrameLoop,
+		];
+
+		function startTransitionLoop(x, y, t) {
 			setTime(t);
 			setPosition(x, y, MODE_3D);
 			function loop() {
@@ -148,28 +162,30 @@
 			loop();
 		}
 
-		function startChunkingLoop1(x, y, t) {
+		function startChunkingLoop(x, y, t) {
 			var numSteps = Math.ceil(t / 100);
-			var stepTime = t / numSteps;
+			var stepTime = Math.floor(t / numSteps);
+			console.log("Out of sync by: (ms) ", t - numSteps*stepTime);
 			var curpos = currentPosition();
-			var sx = curpos.x, sy = curpos.y;
-			var dx = (x - sx) / numSteps;
-			var dy = (y - sy) / numSteps;
+			var cx = curpos.x, cy = curpos.y;
+			var dx = (x - cx) / numSteps;
+			var dy = (y - cy) / numSteps;
 			var i = 0;
 
 			setTime(stepTime);
 			function loop() {
-				sx += dx;
-				sy += dy;
+				cx += dx;
+				cy += dy;
 				i++;
-				setPosition(sx, sy, MODE_3D);
+				console.log('CHUNK SET POSITION');
+				setPosition(cx, cy, MODE_3D);
 				if (i >= numSteps) running = false;
 				if (running) setTimeout(loop, stepTime);
 			}
 			loop();
 		}
 
-		function startFrameLoop3(x, y, t) {
+		function startBezierFrameLoop(x, y, t) {
 			var curt = Date.now();
 			var newt = curt;
 			var endt = curt + t;
@@ -182,20 +198,36 @@
 			var bezier = new CubicBezier(0.33, 0.66, 0.66, 1);
 			setTime(0);
 
+			var idealInterval = 16;
+			var maxInterval   = 40;
+			var interval = idealInterval;
+
+			var requestAnimationFrame = window.requestAnimationFrame ||
+				window.webkitRequestAnimationFrame ||
+				window.mozRequestAnimationFrame ||
+				window.oRequestAnimationFrame ||
+				window.msRequestAnimationFrame;
+
 			function loop3() {
+				var lateness = Math.max(0, Date.now() - newt - interval);
+				//console.log('LATENESS: ', lateness);
+				interval = Math.min(idealInterval + lateness, maxInterval);
 				newt = Date.now();
 				dt = newt - curt;
 				T = dt / t;
 				if (T >= 1.0) return;
 				pos = bezier.at(T);
 				setPosition(pos.x*dx + sx, pos.y*dy + sy, MODE_3D);
-				if (running) setTimeout(loop3, 0);
+				if (running) {
+					if (requestAnimationFrame) requestAnimationFrame(loop3);
+					else setTimeout(loop3, interval);
+				}
 			}
 
 			loop3();
 		}
 
-		function startFrameLoop2(x, y, t) {
+		function startLinearFrameLoop(x, y, t) {
 			var steps = [];
 			var numSteps = Math.ceil(t / 16.666666);
 			var curpos = currentPosition();
@@ -216,7 +248,7 @@
 			loop2();
 		}
 
-		function startFrameLoop1(x, y, t) {
+		function startLinearTimeCompensatingFrameLoop(x, y, t) {
 			var curpos = currentPosition();
 			var curx = curpos.x;
 			var cury = curpos.y;
@@ -280,7 +312,7 @@
 			setPosition(xpos, ypos, MODE_2D);
 			setTimeout(function () {
 				setPosition(xpos, ypos, MODE_3D);
-				cb();
+// 				cb();
 			});
 		}
 
@@ -315,11 +347,12 @@
 			time = round(t);
 			console.log("Changing transition time to ", time, "ms");
 			elm.style[vendor + 'TransitionDuration'] = time + 'ms';
+// 			elm.style[vendor + 'TransitionDelay'   ] = time ? '-0.01s' : '';
 		}
 
 		function setPosition(x, y, mode) {
 			if (mode === MODE_3D) {
-				var tr = 'translate3d(' + round(x) + 'px,' + round(y) + 'px,0px)';
+				var tr = 'translate3d(' + x + 'px,' + y + 'px,0px)';
 				elm.style[vendor + 'Transform'] = tr;
 			} else if (mode === MODE_2D) {
 				var tr = 'translate(' + round(x) + 'px,' + round(y) + 'px)';

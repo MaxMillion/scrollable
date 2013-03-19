@@ -124,7 +124,7 @@
 		<div class="box">
 			<div class="topbar">
 				<div class="scrolling">Scrolling</div>
-				<div class="button">Use setTimeout</div>
+				<div class="button">Transition</div>
 				<div class="clear"></div>
 			</div>
 
@@ -136,6 +136,7 @@
 			</div>
 		</div>
 
+		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
 
@@ -177,19 +178,21 @@
 				useTransition: true,
 			};
 			function toggleUseBezier () {
-				if (opts.useTransition) {
-					opts.useTransition = false;
-					button.text("Use bezier");
-					iscroll.destroy();
-					iscroll = new iScroll(content[0], opts);
-					usingBezier = true;
-				} else {
-					opts.useTransition = true;
-					button.text("Use setTimeout");
-					iscroll.destroy();
-					iscroll = new iScroll(content[0], opts);
-					usingBezier = false;
-				}
+				var name = iscroll.animator.nextAnimationStrategy();
+				button.text(name);
+// 				if (opts.useTransition) {
+// 					opts.useTransition = false;
+// 					button.text("Use bezier");
+// 					iscroll.destroy();
+// 					iscroll = new iScroll(content[0], opts);
+// 					usingBezier = true;
+// 				} else {
+// 					opts.useTransition = true;
+// 					button.text("Use setTimeout");
+// 					iscroll.destroy();
+// 					iscroll = new iScroll(content[0], opts);
+// 					usingBezier = false;
+// 				}
 			}
 
 			iscroll = new iScroll(content[0], opts);
