@@ -316,12 +316,12 @@
 			});
 		}
 
-// 		elm.addEventListener('webkitTransitionEnd', transitionEnd, false);
-// 		elm.addEventListener('transitionend', transitionEnd, false);
-// 		function transitionEnd() {
-// 			running = false;
+		elm.addEventListener('webkitTransitionEnd', transitionEnd, false);
+		elm.addEventListener('transitionend', transitionEnd, false);
+		function transitionEnd() {
+			running = false;
 // 			start();
-// 		}
+		}
 
 		var p0 = {x: 0   , y: 0};
 		var p1 = {x: 0.33, y: 0.66};

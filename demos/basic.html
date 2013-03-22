@@ -143,6 +143,7 @@
 		<script src="/zerver/require.js"></script>
 		<script src="../src/cubicBezier.js"  ></script>
 		<script src="../src/iscroll.js"      ></script>
+		<script src="../src/iscrollmod.js"   ></script>
 		<script src="../src/scrollable.js"   ></script>
 		<script src="../src/utils.js"        ></script>
 		<script src="../src/scrollWatcher.js"></script>
@@ -195,7 +196,7 @@
 // 				}
 			}
 
-			iscroll = new iScroll(content[0], opts);
+			iscroll = new iScrollMod(content[0], opts);
 
 			button
 				.clickable()
