@@ -48,6 +48,12 @@
 		}
 	}
 
+	function translate3d(x, y, z) {
+		x = x || 0; y = y || 0; z = z || 0;
+		return 'translate3d(' +
+			round(x) + 'px,' + round(y) + 'px,' + round(z) + 'px)';
+	}
+
 	var MODE_3D = 1, MODE_2D = 2, MODE_DOM = 3;
 	function Animator(elm) {
 		var self = this;
@@ -58,17 +64,67 @@
 		var xpos = 0;
 		var ypos = 0;
 
-		elm.style[vendor + 'TransitionProperty'] = '-' + vendor.toLowerCase() +
+		var myStyleSheet = document.createElement('style');
+		myStyleSheet.innerHTML = [
+			'@-webkit-keyframes iScrollModAnimation {',
+				'from {',
+					'-webkit-transform: translate3d(0px, 0px, 0px);',
+				'}',
+				'to {',
+					'-webkit-transform: translate3d(0px, -100px, 0px);',
+				'}',
+			'}',
+			'@-webkit-keyframes iScrollModAnimationEmpty {',
+				'from {',
+					'-webkit-transform: translate3d(0px, 0px, 0px);',
+				'}',
+				'to {',
+					'-webkit-transform: translate3d(0px, 0px, 0px);',
+				'}',
+			'}',
+		].join('\n');
+		document.head.appendChild(myStyleSheet);
+
+		function setAnimationFrom(x, y) {
+			var style = myStyleSheet.sheet.cssRules[0][0].style;
+			style.webkitTransform = translate3d(x, y, 0);
+		}
+		function setAnimationTo(x, y) {
+			var style = myStyleSheet.sheet.cssRules[0][1].style;
+			style.webkitTransform = translate3d(x, y, 0);
+			var emptySheet = myStyleSheet.sheet.cssRules[1];
+			emptySheet[0].style.webkitTransform = translate3d(x, y, 0);
+			emptySheet[1].style.webkitTransform = translate3d(x, y, 0);
+		}
+		function startAnimationLoop(x, y, t) {
+			var pos = currentPosition();
+			setAnimationFrom(pos.x, pos.y);
+			elm.style[vendor + 'AnimationDuration'] = round(t) + 'ms';
+			setAnimationTo(x, y);
+			elm.style[vendor + 'AnimationName'] = 'iScrollModAnimation';
+// 			elm.style.webkitTransform = translate3d(x, y, 0);
+		}
+
+		elm.style[vendor + 'AnimationTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
+		elm.style[vendor + 'AnimationName'] = 'iScrollModAnimation';
+		elm.style[vendor + 'AnimationDuration'] = '1000ms';
+// 		elm.style[vendor + 'AnimationIterationCount'] = 'infinite';
+// 		elm.style[vendor + 'AnimationPlayState'] = 'running';
+// 		elm.style[vendor + 'TransitionProperty'] = '-' + vendor.toLowerCase() +
 '-transform';
-		elm.style[vendor + 'TransitionDuration'] = '0';
-		elm.style[vendor + 'TransformOrigin'] = '0 0';
+// 		elm.style[vendor + 'TransitionDuration'] = '0';
+// 		elm.style[vendor + 'TransformOrigin'] = '0 0';
 // 		elm.style[vendor + 'TransitionTimingFunction'] = 'linear';
-		elm.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
+// 		elm.style[vendor + 'TransitionTimingFunction'] = 'cubic-bezier(0.33, 0.66, 0.66, 1)';
 
 		function stop() {
 // 			cancelFrame(frameId);
 			steps = [];
 			running = false;
+			elm.style[vendor + 'AnimationName'] = 'iScrollModAnimationEmpty';
+// 			elm.style[vendor + 'AnimationPlayState'] = 'paused';
+// 			elm.style[vendor + 'AnimationDuration'] = '0ms';
+// 			elm.style[vendor + 'Animation'] = '';
 		}
 
 		self.currentPosition = currentPosition;
@@ -142,6 +198,7 @@
 
 		var currentAnimationStrategy = 0;
 		var animationStrategies = [
+			startAnimationLoop,
 			startTransitionLoop,
 			startChunkingLoop,
 			startBezierFrameLoop,
@@ -345,12 +402,13 @@
 		function setTime(t) {
 			if (time === round(t)) return;
 			time = round(t);
-			console.log("Changing transition time to ", time, "ms");
-			elm.style[vendor + 'TransitionDuration'] = time + 'ms';
+			console.log("Ignoring request to change transition time to ", time, "ms");
+// 			elm.style[vendor + 'TransitionDuration'] = time + 'ms';
 // 			elm.style[vendor + 'TransitionDelay'   ] = time ? '-0.01s' : '';
 		}
 
 		function setPosition(x, y, mode) {
+// 			console.log("Ignoring request to set position to ", x, y);
 			if (mode === MODE_3D) {
 				var tr = 'translate3d(' + x + 'px,' + y + 'px,0px)';
 				elm.style[vendor + 'Transform'] = tr;
@@ -422,7 +480,7 @@ var
 			i;
 
 		that.wrapper = typeof el == 'object' ? el : doc.getElementById(el);
-		that.wrapper.style.overflow = 'hidden';
+// 		that.wrapper.style.overflow = 'hidden';
 		that.scroller = that.wrapper.children[0];
 		that.eventBus = new EventBus();
 
