@@ -15,16 +15,15 @@
 				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 				-webkit-user-select: none;
 				user-select: none;
+				height: 100%;
 			}
 			.clear {
 				clear: both;
 			}
 			.box {
 				position: relative;
-				margin: 16px auto;
 				width: 100%;
-				max-width: 288px;
-				height: 240px;
+				height: 100%;
 				background: #FFF;
 				-webkit-border-radius: 3px;
 				-moz-border-radius: 3px;
@@ -91,21 +90,29 @@
 				-moz-box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
 				box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
 			}
-			.box .list {
+			.box .content {
 				z-index: 100;
-				position: relative;
-				height: 196px;
-				overflow: scroll;
+				position: absolute;
+				top: 44px;
+				left: 0px;
+				right: 0px;
+				bottom: 0px;
+				/*overflow: scroll;*/
+			}
+			.box .content .scroller {
+				width: 100%;
 			}
 			.box .list .item {
-				margin: 8px 12px;
-				padding: 4px 12px;
-				height: 24px;
+				padding: 2px;
+				min-height: 68px;
 				color: #444;
-				font-size: 18px;
+				font-size: 24px;
 				font-weight: bold;
-				line-height: 24px;
+				line-height: 68px;
 				text-shadow: 0 1px 0 #FFF;
+			}
+			.box .list .item img {
+				float: left;
 			}
 			.box .list .item:nth-child(odd) {
 				background: #F7F7F7;
@@ -117,47 +124,23 @@
 		<div class="box">
 			<div class="topbar">
 				<div class="scrolling">Scrolling</div>
-				<div class="button">Top</div>
+				<div class="button">Transition</div>
 				<div class="clear"></div>
 			</div>
 
-			<div class="list">
-				<div class="item">Item 1</div>
-				<div class="item">Item 2</div>
-				<div class="item">Item 3</div>
-				<div class="item">Item 4</div>
-				<div class="item">Item 5</div>
-				<div class="item">Item 6</div>
-				<div class="item">Item 7</div>
-				<div class="item">Item 8</div>
-				<div class="item">Item 9</div>
-				<div class="item">Item 10</div>
-				<div class="item">Item 11</div>
-				<div class="item">Item 12</div>
-				<div class="item">Item 13</div>
-				<div class="item">Item 14</div>
-				<div class="item">Item 15</div>
-				<div class="item">Item 16</div>
-				<div class="item">Item 17</div>
-				<div class="item">Item 18</div>
-				<div class="item">Item 19</div>
-				<div class="item">Item 20</div>
-				<div class="item">Item 21</div>
-				<div class="item">Item 22</div>
-				<div class="item">Item 23</div>
-				<div class="item">Item 24</div>
-				<div class="item">Item 25</div>
-				<div class="item">Item 26</div>
-				<div class="item">Item 27</div>
-				<div class="item">Item 28</div>
-				<div class="item">Item 29</div>
-				<div class="item">Item 30</div>
+			<div class="content">
+<!-- 				<div class="scroller"> -->
+					<div class="list">
+					</div>
+<!-- 				</div> -->
 			</div>
 		</div>
 
+		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
 
+		<script src="/zerver/require.js"></script>
 		<script src="../src/iscroll.js"      ></script>
 		<script src="../src/scrollable.js"   ></script>
 		<script src="../src/utils.js"        ></script>
@@ -167,7 +150,8 @@
 		<script>
 			var list      = $('.list'),
 				scrolling = $('.topbar .scrolling'),
-				button    = $('.topbar .button');
+				button    = $('.topbar .button'),
+				content   = $('.content');
 
 			function printScrolling () {
 				if ( list[0]._isScrolling ) {
@@ -182,7 +166,8 @@
 				list.scrollTop(0);
 			}
 
-			list.scrollable();
+			fillWithExampleItems(list);
+			content.scrollable();
 
 			button
 				.clickable()
@@ -193,6 +178,17 @@
 			setInterval(function () {
 				printScrolling();
 			}, 100);
+
+			function fillWithExampleItems(list, num) {
+				num = num || 500;
+				for (var i = 0; i < num; i++) {
+					var div = $('<div />');
+					div.addClass('item');
+					div.text("Item " + i);
+					div.append($('<img />').attr('src', 'http://lorempixel.com/64/64/?'+i));
+					list.append(div);
+				}
+			}
 		</script>
 	</body>
 </html>
