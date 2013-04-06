@@ -4,102 +4,9 @@
 		<title>Scrollable Demo - Basic</title>
 
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
+		<link rel="stylesheet" href="http://cdn.kik.com/app/1/default.css">
 		<style>
-			html, body, div {
-				margin: 0;
-				padding: 0;
-			}
-			html, body {
-				background: #E3E3E3;
-				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-				-webkit-user-select: none;
-				user-select: none;
-				height: 100%;
-			}
-			.clear {
-				clear: both;
-			}
-			.box {
-				position: relative;
-				width: 100%;
-				height: 100%;
-				background: #FFF;
-				-webkit-border-radius: 3px;
-				-moz-border-radius: 3px;
-				border-radius: 3px;
-				-webkit-box-shadow: 0 1px 3px #AAA;
-				-moz-box-shadow: 0 1px 3px #AAA;
-				box-shadow: 0 1px 3px #AAA;
-				overflow: hidden;
-			}
-			.box .topbar {
-				z-index: 101;
-				position: relative;
-				height: 44px;
-				background: #3C3C3C;
-				-webkit-border-radius: 3px 3px 0 0;
-				-moz-border-radius: 3px 3px 0 0;
-				border-radius: 3px 3px 0 0;
-				-webkit-box-shadow: 0 1px 3px #777;
-				-moz-box-shadow: 0 1px 3px #777;
-				box-shadow: 0 1px 3px #777;
-			}
-			.box .topbar .scrolling,
-			.box .topbar .button {
-				margin: 6px;
-				padding: 0 8px;
-				height: 32px;
-				-webkit-border-radius: 3px;
-				-moz-border-radius: 3px;
-				border-radius: 3px;
-				font-size: 14px;
-				font-weight: bold;
-				line-height: 32px;
-			}
-			.box .topbar .scrolling {
-				float: left;
-				background: #E5E5E5;
-				color: #555;
-			}
-			.box .topbar .button {
-				float: right;
-				background: #EEE;
-				background-image: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#DDD));
-				background-image: -webkit-linear-gradient(top, #FFF, #DDD);
-				background-image: -moz-linear-gradient(top, #FFF, #DDD);
-				background-image: -ms-linear-gradient(top, #FFF, #DDD);
-				background-image: -o-linear-gradient(top, #FFF, #DDD);
-				background-image: linear-gradient(top, #FFF, #DDD);
-				-webkit-box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
-				-moz-box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
-				box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
-				color: #333;
-				text-shadow: 0 1px 0 #F2F2F2;
-				cursor: pointer;
-			}
-			.box .topbar .button.active {
-				background: #DDD;
-				background-image: -webkit-gradient(linear, left top, left bottom, from(#BBB), to(#DDD));
-				background-image: -webkit-linear-gradient(top, #BBB, #DDD);
-				background-image: -moz-linear-gradient(top, #BBB, #DDD);
-				background-image: -ms-linear-gradient(top, #BBB, #DDD);
-				background-image: -o-linear-gradient(top, #BBB, #DDD);
-				background-image: linear-gradient(top, #BBB, #DDD);
-				-webkit-box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
-				-moz-box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
-				box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
-			}
-			.box .content {
-				z-index: 100;
-				position: absolute;
-				top: 44px;
-				left: 0px;
-				right: 0px;
-				bottom: 0px;
-				/*overflow: scroll;*/
-			}
-			.box .content .scroller {
+			/*.box .content .scroller {
 				width: 100%;
 			}
 			.box .list .item {
@@ -116,29 +23,42 @@
 			}
 			.box .list .item:nth-child(odd) {
 				background: #F7F7F7;
-			}
+			}*/
+img {
+	vertical-align: middle;
+}
+.item {
+	height: auto !important;
+	line-height: auto !important;
+}
 		</style>
 	</head>
 
 	<body>
-		<div class="box">
-			<div class="topbar">
-				<div class="scrolling">Scrolling</div>
-				<div class="button">Transition</div>
-				<div class="clear"></div>
+		<div class="app-page" data-page="list">
+			<div class="app-topbar">
+				<div class="app-title">Scrollable Demo</div>
 			</div>
-
-			<div class="content">
-<!-- 				<div class="scroller"> -->
-					<div class="list">
-					</div>
-<!-- 				</div> -->
+			<div class="app-content">
+				<ul class="app-list">
+				</ul>
 			</div>
 		</div>
 
+		<div class="app-page" data-page="viewer">
+			<div class="app-topbar">
+				<div class="app-button left" data-back="true">Back</div>
+				<div class="app-title"></div>
+			</div>
+			<div class="app-content">
+				<img />
+			</div>
+		</div>
+
+
 		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
+<!-- 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> -->
+		<script src="http://cdn.kik.com/app/1/app.js"></script>
 
 		<script src="/zerver/require.js"></script>
 		<script src="../src/iscroll.js"      ></script>
@@ -148,47 +68,93 @@
 		<script src="../src/core.js"         ></script>
 
 		<script>
-			var list      = $('.list'),
-				scrolling = $('.topbar .scrolling'),
-				button    = $('.topbar .button'),
-				content   = $('.content');
+App.populator('list', function (page, data) {
+	var list    = page.querySelector('.app-list');
+	var content = page.querySelector('.content');
+	var categories = ['abstract', 'city', 'people', 'transport', 'animals', 'food', 'nature', 'business', 'nightlife', 'sports', 'cats', 'fashion', 'technics'];
 
-			function printScrolling () {
-				if ( list[0]._isScrolling ) {
-					scrolling.css('background', '#CFC');
-				}
-				else {
-					scrolling.css('background', '#FCC');
-				}
-			}
+	fillWithExampleItems(list);
+// 			content.scrollable();
 
-			function scrollToTop () {
-				list.scrollTop(0);
-			}
+	function fillWithExampleItems(list, num) {
+		num = num || 500;
+		for (var i = 0; i < num; i++) {
+			list.appendChild(generate(i));
+		}
+	}
 
-			fillWithExampleItems(list);
-			content.scrollable();
+	function generate(i) {
+		var li = document.createElement('li');
+		li.classList.add('item');
 
-			button
-				.clickable()
-				.on('click', scrollToTop);
+		var text = document.createTextNode("Item " + i);
 
-			printScrolling();
+		var img = document.createElement('img');
+		var cat = Math.floor(i / 10) % categories.length;
+		var num2 = (i % 10) + 1;
+		img.src = getThumbnailURL(
+			'http://lorempixel.com/64/64/' + categories[cat] + '/' + num2,
+			64, 64, 1.0);
+		li.appendChild(img);
+		li.appendChild(text);
 
-			setInterval(function () {
-				printScrolling();
-			}, 100);
+		Clickable(li);
+		li.addEventListener('click', function () {
+			App.load('viewer', {
+				imgsrc: img.src,
+				text: "Item " + i,
+			});
+		}, false);
 
-			function fillWithExampleItems(list, num) {
-				num = num || 500;
-				for (var i = 0; i < num; i++) {
-					var div = $('<div />');
-					div.addClass('item');
-					div.text("Item " + i);
-					div.append($('<img />').attr('src', 'http://lorempixel.com/64/64/?'+i));
-					list.append(div);
-				}
-			}
+		return li;
+	}
+});
+
+App.populator('viewer', function (page, data) {
+	var title = page.querySelector('.app-title');
+	var img = page.querySelector('img');
+
+	title.innerText = data.text;
+	img.src = data.imgsrc;
+});
+
+try {
+	App.restore();
+} catch (err) {
+	App.load('list');
+}
+
+
+/*
+	url     = URL of image (must contain a hostname)
+	height  = desired height of thumbnail in pixels
+	width   = desired width of thumbnail in pixels
+	quality = desired quality of thumbnail (values are 0 to 2)
+
+	If only one dimension is specified, aspect ratio will be preserved
+	and the thumbnail will be a scaled version of the original.
+	If both dimensions are specified, the image will be scaled and
+	cropped to the desired dimensions.
+*/
+function getThumbnailURL (url, height, width, quality) {
+	if (!height && !width) {
+		throw 'height and/or width must be specified';
+	}
+
+	var BASE_URL = 'http://cards-thumbnailer.appspot.com/';
+	var thumbURL = BASE_URL;
+
+	thumbURL += encodeURIComponent(url) + '?';
+
+	thumbURL += 'h=' + (height  || '') + '&';
+	thumbURL += 'w=' + (width   || '') + '&';
+	thumbURL += 'q=' + (quality || 0 );
+
+	return thumbURL;
+}
+
+var img = new Image();
+img.src = getThumbnailURL('http://somesite.com/mypic.gif', null, 90, 1);
 		</script>
 	</body>
 </html>
