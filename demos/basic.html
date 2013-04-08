@@ -6,24 +6,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 		<link rel="stylesheet" href="http://cdn.kik.com/app/1/default.css">
 		<style>
-			/*.box .content .scroller {
-				width: 100%;
-			}
-			.box .list .item {
-				padding: 2px;
-				min-height: 68px;
-				color: #444;
-				font-size: 24px;
-				font-weight: bold;
-				line-height: 68px;
-				text-shadow: 0 1px 0 #FFF;
-			}
-			.box .list .item img {
-				float: left;
-			}
-			.box .list .item:nth-child(odd) {
-				background: #F7F7F7;
-			}*/
 img {
 	vertical-align: middle;
 }
@@ -70,7 +52,7 @@ img {
 		<script>
 App.populator('list', function (page, data) {
 	var list    = page.querySelector('.app-list');
-	var content = page.querySelector('.content');
+	var content = page.querySelector('.app-content');
 	var categories = ['abstract', 'city', 'people', 'transport', 'animals', 'food', 'nature', 'business', 'nightlife', 'sports', 'cats', 'fashion', 'technics'];
 
 	fillWithExampleItems(list);
@@ -85,23 +67,28 @@ App.populator('list', function (page, data) {
 
 	function generate(i) {
 		var li = document.createElement('li');
-		li.classList.add('item');
+		li.className = 'item app-button';
 
 		var text = document.createTextNode("Item " + i);
 
 		var img = document.createElement('img');
 		var cat = Math.floor(i / 10) % categories.length;
-		var num2 = (i % 10) + 1;
+		var num = (i % 10) + 1;
 		img.src = getThumbnailURL(
-			'http://lorempixel.com/64/64/' + categories[cat] + '/' + num2,
+			'http://lorempixel.com/64/64/' + categories[cat] + '/' + num,
 			64, 64, 1.0);
 		li.appendChild(img);
 		li.appendChild(text);
 
 		Clickable(li);
 		li.addEventListener('click', function () {
+			var w = content.offsetWidth;
+			var h = content.offsetHeight;
 			App.load('viewer', {
-				imgsrc: img.src,
+				imgsrc: getThumbnailURL(
+					'http://lorempixel.com/' + w + '/' + h + '/' + categories[cat] + '/' + num,
+					w, h, 1.0
+				),
 				text: "Item " + i,
 			});
 		}, false);
@@ -115,6 +102,27 @@ App.populator('viewer', function (page, data) {
 	var img = page.querySelector('img');
 
 	title.innerText = data.text;
+
+	var loaderImg = [
+		"data:image/gif;base64,",
+		"R0lGODlhEAAQAPIAAAAAAP///zw8PLy8vP///5ycnHx8fGxsbCH+GkNyZWF0ZWQgd2l0aCBhamF4",
+		"bG9hZC5pbmZvACH5BAAKAAAAIf8LTkVUU0NBUEUyLjADAQAAACwAAAAAEAAQAAADMwi63P4wyklr",
+		"E2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQACgABACwAAAAA",
+		"EAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUk",
+		"KhIAIfkEAAoAAgAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9",
+		"HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkEAAoAAwAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYum",
+		"CYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkEAAoABAAsAAAAABAAEAAAAzII",
+		"unInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQACgAF",
+		"ACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJ",
+		"ibufbSlKAAAh+QQACgAGACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFG",
+		"xTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAAKAAcALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdce",
+		"CAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA==",
+	].join('');
+
+	var s = img.style;
+	s.width = '100%';
+	s.height = '100%';
+	s.background = 'url(' + loaderImg + ') no-repeat center center';
 	img.src = data.imgsrc;
 });
 
