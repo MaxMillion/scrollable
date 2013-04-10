@@ -9,9 +9,8 @@
 img {
 	vertical-align: middle;
 }
-.item {
-	height: auto !important;
-	line-height: auto !important;
+.item div {
+	display: inline-block;
 }
 		</style>
 	</head>
@@ -39,7 +38,6 @@ img {
 
 
 		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
-<!-- 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> -->
 		<script src="http://cdn.kik.com/app/1/app.js"></script>
 
 		<script src="/zerver/require.js"></script>
@@ -54,17 +52,13 @@ App.populator('list', function (page, data) {
 	var list    = page.querySelector('.app-list');
 	var content = page.querySelector('.app-content');
 
-// 	fillWithExampleItems(list);
-// 			content.scrollable();
-	new InfiniteScroller(content, template(), generate);
-	new iScroll(content);
+	var infini = new InfiniteScroller(content, template(), generate);
+	var iscroll = new iScroll(content, {
+		onScrollMove: function () {
+			infini.setPos(iscroll.y);
+		},
+	});
 
-// 	function fillWithExampleItems(list, num) {
-// 		num = num || 500;
-// 		for (var i = 0; i < num; i++) {
-// 			list.appendChild(generate(i));
-// 		}
-// 	}
 	function template() {
 		var li = document.createElement('li');
 		li.className = 'item app-button';
@@ -133,11 +127,19 @@ try {
 	App.load('list');
 }
 
+function mod(a, b) {
+	return ((a % b) + b) % b;
+}
+
 function InfiniteScroller(wrapper, template, filler) {
+	var self = this;
 	var masters = [];
 	var numMasters = 10;
+	var topMaster = 0;
 	var itemHeight = 68;
 	var slider = wrapper.children[0];
+	var currentTop = -1;
+	var prevPos = 0;
 
 	init();
 	setPos(0);
@@ -154,17 +156,30 @@ function InfiniteScroller(wrapper, template, filler) {
 			var elm = template.cloneNode(true);
 			elm.style.position = 'absolute';
 			elm.style.width = '100%';
+			elm.style.height = itemHeight + 'px';
 			elm.style.webkitTransform = 'translate3d(0px, ' + i*itemHeight + 'px, 0px)';
+			filler(elm, i);
 			masters.push({elm: elm, item: -1});
 			slider.appendChild(elm);
 		}
 	}
 
 	function setPos(y) {
-		return;
 		var height = window.innerHeight;
+
+		var prevTop = Math.floor(prevPos / itemHeight);
 		var topItem = Math.floor(y / itemHeight);
-		var numToChange = Math.ceil(height / itemHeight);
+		if (prevTop === topItem) return;
+
+		var prevMaster = mod(prevTop, numMasters);
+		var master = masters[prevMaster];
+		var i = topItem + numMasters + 1;
+		filler(master.elm, i);
+		master.elm.style.webkitTransform = 'translate3d(0px,' + (i*itemHeight) + 'px, 0px)';
+		prevPos = y;
+		return;
+
+		var numToChange = currentTop - topItem;
 		for (var i = 0; i < numToChange; i++) {
 			var elm = source(i + topItem);
 			elm.style.position = 'absolute';
@@ -173,6 +188,7 @@ function InfiniteScroller(wrapper, template, filler) {
 			slider.appendChild(elm);
 		}
 	}
+	self.setPos = setPos;
 }
 
 function getImageURL(num, width, height) {
