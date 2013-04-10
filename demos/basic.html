@@ -21,7 +21,7 @@ img {
 			<div class="app-topbar">
 				<div class="app-title">Scrollable Demo</div>
 			</div>
-			<div class="app-content">
+			<div class="app-content" data-no-scroll="true">
 				<ul class="app-list">
 				</ul>
 			</div>
@@ -54,39 +54,47 @@ App.populator('list', function (page, data) {
 	var list    = page.querySelector('.app-list');
 	var content = page.querySelector('.app-content');
 
-	fillWithExampleItems(list);
+// 	fillWithExampleItems(list);
 // 			content.scrollable();
+	new InfiniteScroller(content, template(), generate);
+	new iScroll(content);
 
-	function fillWithExampleItems(list, num) {
-		num = num || 500;
-		for (var i = 0; i < num; i++) {
-			list.appendChild(generate(i));
-		}
-	}
-
-	function generate(i) {
+// 	function fillWithExampleItems(list, num) {
+// 		num = num || 500;
+// 		for (var i = 0; i < num; i++) {
+// 			list.appendChild(generate(i));
+// 		}
+// 	}
+	function template() {
 		var li = document.createElement('li');
 		li.className = 'item app-button';
 
-
 		var img = document.createElement('img');
-		img.src = getImageURL(i, 64, 64);
 		li.appendChild(img);
 
-		var text = document.createTextNode("Item " + i);
+		var text = document.createElement('div');
 		li.appendChild(text);
 
 		Clickable(li);
-		li.addEventListener('click', function () {
+
+		return li;
+	}
+
+	function generate(template, i) {
+		var img = template.querySelector('img');
+		img.src = getImageURL(i, 64, 64);
+
+		var text = template.querySelector('div');
+		text.innerText = "Item " + i;
+
+		template.onclick = function () {
 			var w = content.offsetWidth;
 			var h = content.offsetHeight;
 			App.load('viewer', {
 				imgsrc: getImageURL(i, w, h),
 				text: "Item " + i,
 			});
-		}, false);
-
-		return li;
+		};
 	}
 });
 
@@ -123,6 +131,48 @@ try {
 	App.restore();
 } catch (err) {
 	App.load('list');
+}
+
+function InfiniteScroller(wrapper, template, filler) {
+	var masters = [];
+	var numMasters = 10;
+	var itemHeight = 68;
+	var slider = wrapper.children[0];
+
+	init();
+	setPos(0);
+	function init() {
+		wrapper.style.position = 'relative';
+
+		var s = slider.style;
+		s.position = 'relative';
+		s.top = '0';
+		s.width = '100%';
+		s.height = '10000px';
+
+		for (var i = 0; i < numMasters; i++) {
+			var elm = template.cloneNode(true);
+			elm.style.position = 'absolute';
+			elm.style.width = '100%';
+			elm.style.webkitTransform = 'translate3d(0px, ' + i*itemHeight + 'px, 0px)';
+			masters.push({elm: elm, item: -1});
+			slider.appendChild(elm);
+		}
+	}
+
+	function setPos(y) {
+		return;
+		var height = window.innerHeight;
+		var topItem = Math.floor(y / itemHeight);
+		var numToChange = Math.ceil(height / itemHeight);
+		for (var i = 0; i < numToChange; i++) {
+			var elm = source(i + topItem);
+			elm.style.position = 'absolute';
+			elm.style.width = '100%';
+			elm.style.webkitTransform = 'translate3d(0px,' + (y + i*itemHeight) + 'px,0px)';
+			slider.appendChild(elm);
+		}
+	}
 }
 
 function getImageURL(num, width, height) {
