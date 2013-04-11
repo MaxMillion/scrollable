@@ -55,7 +55,7 @@ App.populator('list', function (page, data) {
 	var infini = new InfiniteScroller(content, template(), generate);
 	var iscroll = new iScroll(content, {
 		onScrollMove: function () {
-			infini.setPos(iscroll.y);
+			infini.setPos(-iscroll.y);
 		},
 	});
 
@@ -135,10 +135,8 @@ function InfiniteScroller(wrapper, template, filler) {
 	var self = this;
 	var masters = [];
 	var numMasters = 10;
-	var topMaster = 0;
 	var itemHeight = 68;
 	var slider = wrapper.children[0];
-	var currentTop = -1;
 	var prevPos = 0;
 
 	init();
@@ -159,34 +157,39 @@ function InfiniteScroller(wrapper, template, filler) {
 			elm.style.height = itemHeight + 'px';
 			elm.style.webkitTransform = 'translate3d(0px, ' + i*itemHeight + 'px, 0px)';
 			filler(elm, i);
-			masters.push({elm: elm, item: -1});
+			masters.push({elm: elm, item: i});
 			slider.appendChild(elm);
 		}
 	}
 
-	function setPos(y) {
-		var height = window.innerHeight;
-
-		var prevTop = Math.floor(prevPos / itemHeight);
-		var topItem = Math.floor(y / itemHeight);
-		if (prevTop === topItem) return;
-
-		var prevMaster = mod(prevTop, numMasters);
-		var master = masters[prevMaster];
-		var i = topItem + numMasters + 1;
-		filler(master.elm, i);
-		master.elm.style.webkitTransform = 'translate3d(0px,' + (i*itemHeight) + 'px, 0px)';
-		prevPos = y;
-		return;
-
-		var numToChange = currentTop - topItem;
-		for (var i = 0; i < numToChange; i++) {
-			var elm = source(i + topItem);
-			elm.style.position = 'absolute';
-			elm.style.width = '100%';
-			elm.style.webkitTransform = 'translate3d(0px,' + (y + i*itemHeight) + 'px,0px)';
-			slider.appendChild(elm);
+	function setPage(newPage) {
+		for (var i = 0; i < numMasters; i++) {
+			var master = masters[i];
+			var style = masters[i].elm.style;
+			var item = i + newPage;
+			style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
+			if (master.item !== item) {
+				filler(master.elm, item);
+				master.item = item;
+			}
 		}
+	}
+
+	function setPos(curPos) {
+		var newPage = Math.floor(curPos / itemHeight);
+		setPage(newPage);
+// 		var prevTop = Math.ceil(prevPos / itemHeight);
+// 		prevPos = curPos;
+// 		var curTop = Math.ceil(curPos / itemHeight);
+//
+// 		var prevMaster = mod(prevTop, numMasters);
+// 		var master = masters[prevMaster];
+// 		var i = curTop + numMasters + 1;
+// // 		if (master.item !== prevTop) return;
+//
+// 		filler(master.elm, i);
+// 		master.elm.style.webkitTransform = 'translate3d(0px,' + (i*itemHeight) + 'px, 0px)';
+// 		return;
 	}
 	self.setPos = setPos;
 }
