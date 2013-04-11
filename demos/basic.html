@@ -140,6 +140,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	var curChunk = 0;
 	var itemsPerChunk = 5;
 	var itemHeight = 68;
+	var chunkHeight = itemHeight*itemsPerChunk;
 
 	var slider = wrapper.children[0];
 	var prevPos = 0;
@@ -193,7 +194,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	function positionChunk(chunk, newPos) {
 		if (chunk.pos === newPos) return;
 
-		transform = 'translate3d(0px,' + newPos*itemsPerChunk*itemHeight + 'px, 0px)';
+		transform = 'translate3d(0px,' + newPos*chunkHeight + 'px, 0px)';
 		chunk.elm.style.webkitTransform = transform;
 // 		filler(master.elm, item);
 		chunk.pos = newPos;
@@ -222,13 +223,13 @@ function InfiniteScroller(wrapper, template, filler) {
 	}
 
 	function setPos(curPos) {
-		return;
-		var newPage = Math.floor(curPos / itemHeight) - 1;
-		if (newPage - prevItem === 0) return;
-		else if (newPage - prevItem === 1) nextPage();
-		else if (newPage - prevItem === -1) prevPage();
-		else setPage(newPage);
-		prevItem = newPage;
+// 		return;
+		var newChunk = Math.floor(curPos / chunkHeight) - 1;
+		if (newChunk === curChunk) return;
+		else if (newChunk === curChunk + 1) nextChunk();
+		else if (newChunk === curChunk - 1) prevChunk();
+// 		else setPage(newPage);
+		curChunk = newChunk;
 	}
 	self.setPos = setPos;
 }
