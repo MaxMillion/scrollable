@@ -138,6 +138,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	var itemHeight = 68;
 	var slider = wrapper.children[0];
 	var prevPos = 0;
+	var prevItem = 0;
 
 	init();
 	setPos(0);
@@ -175,21 +176,31 @@ function InfiniteScroller(wrapper, template, filler) {
 		}
 	}
 
+	function nextPage() {
+		var movingMaster = mod(prevItem, numMasters);
+		var master = masters[movingMaster];
+		var item = prevItem + numMasters;
+		master.elm.style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
+		filler(master.elm, item);
+		master.item = item;
+	}
+
+	function prevPage() {
+		var movingMaster = mod(prevItem, numMasters);
+		var master = masters[movingMaster];
+		var item = prevItem - 1;
+		master.elm.style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
+		filler(master.elm, item);
+		master.item = item;
+	}
+
 	function setPos(curPos) {
 		var newPage = Math.floor(curPos / itemHeight);
-		setPage(newPage);
-// 		var prevTop = Math.ceil(prevPos / itemHeight);
-// 		prevPos = curPos;
-// 		var curTop = Math.ceil(curPos / itemHeight);
-//
-// 		var prevMaster = mod(prevTop, numMasters);
-// 		var master = masters[prevMaster];
-// 		var i = curTop + numMasters + 1;
-// // 		if (master.item !== prevTop) return;
-//
-// 		filler(master.elm, i);
-// 		master.elm.style.webkitTransform = 'translate3d(0px,' + (i*itemHeight) + 'px, 0px)';
-// 		return;
+		if (newPage - prevItem === 0) return;
+		else if (newPage - prevItem === 1) nextPage();
+		else if (newPage - prevItem === -1) prevPage();
+		else setPage(newPage);
+		prevItem = newPage;
 	}
 	self.setPos = setPos;
 }
