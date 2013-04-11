@@ -137,6 +137,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	// {items: [], startIndex: 0, elm: [div]}
 	var chunks = [];
 	var numChunks = 5;
+	var curChunk = 0;
 	var itemsPerChunk = 5;
 	var itemHeight = 68;
 
@@ -163,12 +164,13 @@ function InfiniteScroller(wrapper, template, filler) {
 
 		function generateChunk(chunkNum) {
 			var chunk = {
-				elm: document.createElement('div'),
+				elm:   document.createElement('div'),
 				items: [],
-				startIndex: chunkNum*itemsPerChunk,
+				pos:   -1,
 			};
 			var cs = chunk.elm.style;
-			cs.position = 'relative';
+			cs.position = 'absolute';
+			cs.top = '0px';
 			cs.width = '100%';
 			cs.height = itemHeight*itemsPerChunk + 'px';
 
@@ -183,17 +185,18 @@ function InfiniteScroller(wrapper, template, filler) {
 				chunk.items.push(elm);
 				chunk.elm.appendChild(elm);
 			}
+			positionChunk(chunk, chunkNum);
 			return chunk;
 		}
 	}
 
-	function positionMaster(master, item) {
-		if (master.item === item) return;
+	function positionChunk(chunk, newPos) {
+		if (chunk.pos === newPos) return;
 
-		var s = master.elm.style;
-		s.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
+		transform = 'translate3d(0px,' + newPos*itemsPerChunk*itemHeight + 'px, 0px)';
+		chunk.elm.style.webkitTransform = transform;
 // 		filler(master.elm, item);
-		master.item = item;
+		chunk.pos = newPos;
 	}
 
 	function setPage(newPage) {
@@ -204,18 +207,18 @@ function InfiniteScroller(wrapper, template, filler) {
 		}
 	}
 
-	function nextPage() {
-		var movingMaster = mod(prevItem, numMasters);
-		var master = masters[movingMaster];
-		var item = prevItem + numMasters;
-		positionMaster(master, item);
+	function nextChunk() {
+		var movingChunk = mod(curChunk, numChunks);
+		var chunk = chunks[movingChunk];
+		var newPos = curChunk + numChunks;
+		positionChunk(chunk, newPos);
 	}
 
-	function prevPage() {
-		var movingMaster = mod(prevItem + numMasters, numMasters);
-		var master = masters[movingMaster];
-		var item = prevItem;
-		positionMaster(master, item);
+	function prevChunk() {
+		var movingChunk = mod(curChunk + numChunks, numChunks);
+		var chunk = chunks[movingChunk];
+		var newPos = curChunk;
+		positionChunk(chunk, newPos);
 	}
 
 	function setPos(curPos) {
