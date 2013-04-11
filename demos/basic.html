@@ -156,23 +156,28 @@ function InfiniteScroller(wrapper, template, filler) {
 			elm.style.position = 'absolute';
 			elm.style.width = '100%';
 			elm.style.height = itemHeight + 'px';
-			elm.style.webkitTransform = 'translate3d(0px, ' + i*itemHeight + 'px, 0px)';
-			filler(elm, i);
-			masters.push({elm: elm, item: i});
+
+			master = {elm: elm, item: -1};
+			positionMaster(master, i);
+			masters.push(master);
 			slider.appendChild(elm);
 		}
+	}
+
+	function positionMaster(master, item) {
+		if (master.item === item) return;
+
+		var s = master.elm.style;
+		s.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
+		filler(master.elm, item);
+		master.item = item;
 	}
 
 	function setPage(newPage) {
 		for (var i = 0; i < numMasters; i++) {
 			var master = masters[i];
-			var style = masters[i].elm.style;
 			var item = i + newPage;
-			style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
-			if (master.item !== item) {
-				filler(master.elm, item);
-				master.item = item;
-			}
+			positionMaster(master, item);
 		}
 	}
 
@@ -180,22 +185,18 @@ function InfiniteScroller(wrapper, template, filler) {
 		var movingMaster = mod(prevItem, numMasters);
 		var master = masters[movingMaster];
 		var item = prevItem + numMasters;
-		master.elm.style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
-		filler(master.elm, item);
-		master.item = item;
+		positionMaster(master, item);
 	}
 
 	function prevPage() {
 		var movingMaster = mod(prevItem + numMasters, numMasters);
 		var master = masters[movingMaster];
 		var item = prevItem;
-		master.elm.style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
-		filler(master.elm, item);
-		master.item = item;
+		positionMaster(master, item);
 	}
 
 	function setPos(curPos) {
-		var newPage = Math.floor(curPos / itemHeight);
+		var newPage = Math.floor(curPos / itemHeight) - 1;
 		if (newPage - prevItem === 0) return;
 		else if (newPage - prevItem === 1) nextPage();
 		else if (newPage - prevItem === -1) prevPage();
