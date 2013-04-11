@@ -182,7 +182,7 @@ function InfiniteScroller(wrapper, template, filler) {
 				elm.style.height = itemHeight + 'px';
 				elm.style.top = itemHeight*i + 'px';
 
-				filler(elm, i + chunkNum*itemsPerChunk);
+// 				filler(elm, i + chunkNum*itemsPerChunk);
 				chunk.items.push(elm);
 				chunk.elm.appendChild(elm);
 			}
@@ -196,7 +196,9 @@ function InfiniteScroller(wrapper, template, filler) {
 
 		transform = 'translate3d(0px,' + newPos*chunkHeight + 'px, 0px)';
 		chunk.elm.style.webkitTransform = transform;
-// 		filler(master.elm, item);
+		for (var i = 0; i < itemsPerChunk; i++) {
+			filler(chunk.items[i], i + newPos*itemsPerChunk);
+		}
 		chunk.pos = newPos;
 	}
 
@@ -216,9 +218,9 @@ function InfiniteScroller(wrapper, template, filler) {
 	}
 
 	function prevChunk() {
-		var movingChunk = mod(curChunk + numChunks, numChunks);
+		var movingChunk = mod(curChunk + numChunks - 1, numChunks);
 		var chunk = chunks[movingChunk];
-		var newPos = curChunk;
+		var newPos = curChunk - 1;
 		positionChunk(chunk, newPos);
 	}
 
