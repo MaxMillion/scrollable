@@ -133,9 +133,13 @@ function mod(a, b) {
 
 function InfiniteScroller(wrapper, template, filler) {
 	var self = this;
-	var masters = [];
-	var numMasters = 10;
+
+	// {items: [], startIndex: 0, elm: [div]}
+	var chunks = [];
+	var numChunks = 5;
+	var itemsPerChunk = 5;
 	var itemHeight = 68;
+
 	var slider = wrapper.children[0];
 	var prevPos = 0;
 	var prevItem = 0;
@@ -151,16 +155,35 @@ function InfiniteScroller(wrapper, template, filler) {
 		s.width = '100%';
 		s.height = '100000px';
 
-		for (var i = 0; i < numMasters; i++) {
-			var elm = template.cloneNode(true);
-			elm.style.position = 'absolute';
-			elm.style.width = '100%';
-			elm.style.height = itemHeight + 'px';
+		for (var i = 0; i < numChunks; i++) {
+			var chunk = generateChunk(i);
+			chunks.push(chunk);
+			slider.appendChild(chunk.elm);
+		}
 
-			master = {elm: elm, item: -1};
-			positionMaster(master, i);
-			masters.push(master);
-			slider.appendChild(elm);
+		function generateChunk(chunkNum) {
+			var chunk = {
+				elm: document.createElement('div'),
+				items: [],
+				startIndex: chunkNum*itemsPerChunk,
+			};
+			var cs = chunk.elm.style;
+			cs.position = 'relative';
+			cs.width = '100%';
+			cs.height = itemHeight*itemsPerChunk + 'px';
+
+			for (var i = 0; i < itemsPerChunk; i++) {
+				var elm = template.cloneNode(true);
+				elm.style.position = 'absolute';
+				elm.style.width = '100%';
+				elm.style.height = itemHeight + 'px';
+				elm.style.top = itemHeight*i + 'px';
+
+				filler(elm, i + chunkNum*itemsPerChunk);
+				chunk.items.push(elm);
+				chunk.elm.appendChild(elm);
+			}
+			return chunk;
 		}
 	}
 
@@ -169,7 +192,7 @@ function InfiniteScroller(wrapper, template, filler) {
 
 		var s = master.elm.style;
 		s.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
-		filler(master.elm, item);
+// 		filler(master.elm, item);
 		master.item = item;
 	}
 
@@ -196,6 +219,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	}
 
 	function setPos(curPos) {
+		return;
 		var newPage = Math.floor(curPos / itemHeight) - 1;
 		if (newPage - prevItem === 0) return;
 		else if (newPage - prevItem === 1) nextPage();
