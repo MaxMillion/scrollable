@@ -54,8 +54,8 @@ App.populator('list', function (page, data) {
 
 	var infini = new InfiniteScroller(content, template(), generate);
 	var iscroll = new iScroll(content, {
-		onScrollMove: function () {
-			infini.setPos(-iscroll.y);
+		onMove: function (x, y) {
+			infini.setPos(-y);
 		},
 	});
 
@@ -149,7 +149,7 @@ function InfiniteScroller(wrapper, template, filler) {
 		s.position = 'relative';
 		s.top = '0';
 		s.width = '100%';
-		s.height = '10000px';
+		s.height = '100000px';
 
 		for (var i = 0; i < numMasters; i++) {
 			var elm = template.cloneNode(true);
@@ -186,9 +186,9 @@ function InfiniteScroller(wrapper, template, filler) {
 	}
 
 	function prevPage() {
-		var movingMaster = mod(prevItem, numMasters);
+		var movingMaster = mod(prevItem + numMasters, numMasters);
 		var master = masters[movingMaster];
-		var item = prevItem - 1;
+		var item = prevItem;
 		master.elm.style.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
 		filler(master.elm, item);
 		master.item = item;

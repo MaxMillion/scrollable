@@ -146,6 +146,8 @@ iScroll.prototype = {
 		x = this.hScroll ? x : 0;
 		y = this.vScroll ? y : 0;
 
+		if (this.options.onMove) this.options.onMove(x, y);
+
 		if (this.options.useTransform) {
 			this.scroller.style[vendor + 'Transform'] = trnOpen + x + 'px,' + y + 'px' + trnClose + ' scale(' + this.scale + ')';
 		} else {
@@ -513,7 +515,7 @@ iScroll.prototype = {
 		that.wrapperH = that.wrapper.clientHeight;
 
 		that.scrollerW = that.scroller.offsetWidth;
-		that.scrollerH = 10000;//that.scroller.offsetHeight;
+		that.scrollerH = 100000;//that.scroller.offsetHeight;
 		that.maxScrollX = that.wrapperW - that.scrollerW;
 		that.maxScrollY = that.wrapperH - that.scrollerH;
 		that.dirX = 0;
