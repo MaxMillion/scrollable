@@ -138,7 +138,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	var itemHeight = 68;
 	var slider = wrapper.children[0];
 	var prevPos = 0;
-	var prevItem = 0;
+	var curItem = 0;
 
 	init();
 	setPos(0);
@@ -173,35 +173,43 @@ function InfiniteScroller(wrapper, template, filler) {
 		master.item = item;
 	}
 
-	function setPage(newPage) {
+	function setItem(newItem) {
 		for (var i = 0; i < numMasters; i++) {
 			var master = masters[i];
-			var item = i + newPage;
+			var item = i + newItem;
 			positionMaster(master, item);
 		}
+		curItem = newItem;
 	}
 
-	function nextPage() {
-		var movingMaster = mod(prevItem, numMasters);
+	function nextItem() {
+		var movingMaster = mod(curItem, numMasters);
 		var master = masters[movingMaster];
-		var item = prevItem + numMasters;
+		var item = curItem + numMasters;
 		positionMaster(master, item);
+		curItem++;
 	}
 
-	function prevPage() {
-		var movingMaster = mod(prevItem + numMasters, numMasters);
+	function prevItem() {
+		var movingMaster = mod(curItem + numMasters - 1, numMasters);
 		var master = masters[movingMaster];
-		var item = prevItem;
+		var item = curItem - 1;
 		positionMaster(master, item);
+		curItem--;
 	}
 
 	function setPos(curPos) {
-		var newPage = Math.floor(curPos / itemHeight) - 1;
-		if (newPage - prevItem === 0) return;
-		else if (newPage - prevItem === 1) nextPage();
-		else if (newPage - prevItem === -1) prevPage();
-		else setPage(newPage);
-		prevItem = newPage;
+		var newItem = Math.floor(curPos / itemHeight) - 1;
+
+		if (newItem === curItem) return;
+
+		if (Math.abs(newItem - curItem) >= numMasters) {
+			setItem(newItem);
+			return;
+		}
+
+		while (newItem > curItem) nextItem();
+		while (newItem < curItem) prevItem();
 	}
 	self.setPos = setPos;
 }
