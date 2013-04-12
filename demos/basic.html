@@ -12,6 +12,11 @@ img {
 .item div {
 	display: inline-block;
 }
+.app-list li,
+.app-list li.app-button {
+	height: 64px;
+	padding: 4px 20px;
+}
 		</style>
 	</head>
 
@@ -22,6 +27,10 @@ img {
 			</div>
 			<div class="app-content" data-no-scroll="true">
 				<ul class="app-list">
+					<li class="item app-button template">
+						<img src="http://placehold.it/64x64" />
+						<div class="name">Loading...</div>
+					</li>
 				</ul>
 			</div>
 		</div>
@@ -49,30 +58,18 @@ img {
 
 		<script>
 App.populator('list', function (page, data) {
-	var list    = page.querySelector('.app-list');
-	var content = page.querySelector('.app-content');
+	var list     = page.querySelector('.app-list');
+	var content  = page.querySelector('.app-content');
+	var template = list.querySelector('.template');
 
-	var infini = new InfiniteScroller(content, template(), generate);
+	template.parentNode.removeChild(template);
+
+	var infini = new InfiniteScroller(content, template, generate);
 	var iscroll = new iScroll(content, {
 		onMove: function (x, y) {
 			infini.setPos(-y);
 		},
 	});
-
-	function template() {
-		var li = document.createElement('li');
-		li.className = 'item app-button';
-
-		var img = document.createElement('img');
-		li.appendChild(img);
-
-		var text = document.createElement('div');
-		li.appendChild(text);
-
-		Clickable(li);
-
-		return li;
-	}
 
 	function generate(template, i) {
 		var img = template.querySelector('img');
@@ -134,8 +131,8 @@ function mod(a, b) {
 function InfiniteScroller(wrapper, template, filler) {
 	var self = this;
 	var masters = [];
-	var numMasters = 10;
-	var itemHeight = 68;
+	var numMasters = 7;
+	var itemHeight = 72;
 	var slider = wrapper.children[0];
 	var prevPos = 0;
 	var curItem = 0;
@@ -155,10 +152,11 @@ function InfiniteScroller(wrapper, template, filler) {
 			var elm = template.cloneNode(true);
 			elm.style.position = 'absolute';
 			elm.style.width = '100%';
-			elm.style.height = itemHeight + 'px';
 
 			master = {elm: elm, item: -1};
 			positionMaster(master, i);
+			filler(master.elm, i);
+
 			masters.push(master);
 			slider.appendChild(elm);
 		}
@@ -169,7 +167,6 @@ function InfiniteScroller(wrapper, template, filler) {
 
 		var s = master.elm.style;
 		s.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
-		filler(master.elm, item);
 		master.item = item;
 	}
 
@@ -199,7 +196,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	}
 
 	function setPos(curPos) {
-		var newItem = Math.floor(curPos / itemHeight) - 1;
+		var newItem = Math.floor(curPos / itemHeight);
 
 		if (newItem === curItem) return;
 
