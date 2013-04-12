@@ -130,11 +130,13 @@ function mod(a, b) {
 
 function InfiniteScroller(wrapper, template, filler) {
 	var self = this;
+
 	var masters = [];
-	var numMasters = 7;
+	var emptyMasters = [];
+	var numMasters = -1;
+
 	var itemHeight = 72;
 	var slider = wrapper.children[0];
-	var prevPos = 0;
 	var curItem = 0;
 
 	init();
@@ -148,17 +150,39 @@ function InfiniteScroller(wrapper, template, filler) {
 		s.width = '100%';
 		s.height = '100000px';
 
+		var ts = template.style;
+		ts.position = 'absolute';
+		ts.width = '100%';
+
+		numMasters = Math.ceil(window.innerHeight / itemHeight);
+
 		for (var i = 0; i < numMasters; i++) {
-			var elm = template.cloneNode(true);
-			elm.style.position = 'absolute';
-			elm.style.width = '100%';
-
-			master = {elm: elm, item: -1};
-			positionMaster(master, i);
-			filler(master.elm, i);
-
+			var master = initMaster(i);
 			masters.push(master);
-			slider.appendChild(elm);
+			slider.appendChild(master.elm);
+
+			var emptyMaster = initEmptyMaster(i);
+			emptyMasters.push(emptyMaster);
+			slider.appendChild(emptyMaster.elm);
+		}
+
+		function initMaster(item) {
+			var master = {
+				elm: template.cloneNode(true),
+				item: -1,
+			};
+			positionMaster(master, item);
+			filler(master.elm, item);
+			return master
+		}
+
+		function initEmptyMaster(item) {
+			var emptyMaster = {
+				elm: template.cloneNode(true),
+				item: 1,
+			};
+			positionMaster(emptyMaster, -item);
+			return emptyMaster;
 		}
 	}
 
