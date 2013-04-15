@@ -16,6 +16,10 @@ img {
 .item div {
 	display: inline-block;
 }
+.app-list {
+	-webkit-backface-visibility: hidden;
+	overflow: hidden;
+}
 .app-list li,
 .app-list li.app-button {
 	height: 64px;
@@ -33,7 +37,7 @@ img {
 				<ul class="app-list">
 					<li class="item app-button template">
 						<img src="http://placehold.it/64x64" />
-						<div class="name">Loading...</div>
+						<div class="name"></div>
 					</li>
 				</ul>
 			</div>
@@ -69,13 +73,13 @@ App.populator('list', function (page, data) {
 	template.parentNode.removeChild(template);
 
 	var infini = new InfiniteScroller(content, template, generate);
-// 	if (App.platform === 'android' && App.platformVersion >= 4.0) {
-// 		content.style.overflow = 'scroll';
-// 		content.style.webkitOverflowScrolling = 'touch';
-// 		content.addEventListener('scroll', function () {
-// 			infini.setPos(content.scrollTop);
-// 		}, false);
-// 	} else {
+	if (App.platform === 'android' && App.platformVersion >= 4.0) {
+		content.style.overflow = 'scroll';
+		content.style.webkitOverflowScrolling = 'touch';
+		content.addEventListener('scroll', function () {
+			infini.setPos(content.scrollTop);
+		}, false);
+	} else {
 		// No native scroll events :(
 		// Oh well, we can emulate this.
 		var iscroll = new iScroll(content, {
@@ -83,7 +87,7 @@ App.populator('list', function (page, data) {
 				infini.setPos(-y);
 			},
 		});
-// 	}
+	}
 
 	function generate(template, i) {
 		var img = template.querySelector('img');
@@ -272,7 +276,7 @@ function InfiniteScroller(wrapper, template, filler) {
 	function tick() {
 		nextFrame(tick);
 		idleCount++;
-		if (idleCount > 10) {
+		if (idleCount > 5) {
 			fillAnInvalidMaster();
 			idleCount = 0;
 		}
