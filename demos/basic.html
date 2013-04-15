@@ -72,6 +72,13 @@ App.populator('list', function (page, data) {
 
 	template.parentNode.removeChild(template);
 
+// 	content.style.overflow = 'scroll';
+// 	content.style.webkitOverflowScrolling = 'touch';
+// 	for (var i = 0; i < 500; i++) {
+// 		var elm = template.cloneNode(true);
+// 		generate(elm, i);
+// 		list.appendChild(elm);
+// 	}
 	var infini = new InfiniteScroller(content, template, generate);
 	if (App.platform === 'android' && App.platformVersion >= 4.0) {
 		content.style.overflow = 'scroll';
@@ -158,7 +165,7 @@ function mod(a, b) {
 function InfiniteScroller(wrapper, template, filler) {
 	var self = this;
 
-	// {placeholder: <elm>, elm: <elm>, item: <number>, loaded: <bool>}
+	// {placeholder: <elm>, elm: <elm>, item: <number>}
 	var masters = [];
 	var numMasters = -1;
 
@@ -198,15 +205,24 @@ function InfiniteScroller(wrapper, template, filler) {
 			};
 			positionMaster(master.elm, item);
 			positionMaster(master.placeholder, item);
-			master.placeholder.style.visibility = 'hidden';
+			hideElm(master.placeholder);
 			filler(master.elm, item);
 			return master
 		}
 	}
 
+	function hideElm(elm) {
+// 		elm.style.opacity = '0';
+		elm.style.visibility = 'hidden';
+	}
+	function showElm(elm) {
+// 		elm.style.opacity = '1';
+		elm.style.visibility = 'visible';
+	}
+
 	function positionMaster(elm, item) {
+		showElm(elm);
 		var s = elm.style;
-		s.visibility = 'visible';
 		s.webkitTransform = 'translate3d(0px,' + item*itemHeight + 'px,0px)';
 	}
 
@@ -216,7 +232,7 @@ function InfiniteScroller(wrapper, template, filler) {
 			var master = masters[invalidMaster];
 			filler(master.elm, master.item);
 			positionMaster(master.elm, master.item);
-			master.placeholder.style.visibility = 'hidden';
+			hideElm(master.placeholder);
 			delete invalidMasters[invalidMaster];
 			return;
 		}
