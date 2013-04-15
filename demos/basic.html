@@ -33,7 +33,7 @@ img {
 			<div class="app-topbar">
 				<div class="app-title">Scrollable Demo</div>
 			</div>
-			<div class="app-content" data-no-scroll="true">
+			<div class="app-content">
 				<ul class="app-list">
 					<li class="item app-button template">
 						<img src="http://placehold.it/64x64" />
@@ -72,21 +72,18 @@ App.populator('list', function (page, data) {
 
 	template.parentNode.removeChild(template);
 
-// 	content.style.overflow = 'scroll';
-// 	content.style.webkitOverflowScrolling = 'touch';
 // 	for (var i = 0; i < 500; i++) {
 // 		var elm = template.cloneNode(true);
 // 		generate(elm, i);
 // 		list.appendChild(elm);
 // 	}
-	var infini = new InfiniteScroller(content, template, generate);
+	var infini = new InfiniteScroller(content, template, filler);
 	if (App.platform === 'android' && App.platformVersion >= 4.0) {
-		content.style.overflow = 'scroll';
-		content.style.webkitOverflowScrolling = 'touch';
 		content.addEventListener('scroll', function () {
 			infini.setPos(content.scrollTop);
 		}, false);
 	} else {
+		content.setAttrribute("data-no-scroll", "true");
 		// No native scroll events :(
 		// Oh well, we can emulate this.
 		var iscroll = new iScroll(content, {
@@ -96,12 +93,19 @@ App.populator('list', function (page, data) {
 		});
 	}
 
-	function generate(template, i) {
+	function filler(template, i) {
 		var img = template.querySelector('img');
-		img.src = getImageURL(i, 64, 64);
-
 		var text = template.querySelector('div');
-		text.innerText = "Item " + i;
+
+		img.src = 'http://placehold.it/64x64';
+		text.innerText = '';
+		img.onload = function () {
+			img.src = getImageURL(i, 64, 64);
+			img.onload = function () {
+				text.innerText = "Item " + i;
+			}
+		};
+
 
 		template.onclick = function () {
 			var w = content.offsetWidth;
@@ -188,7 +192,7 @@ function InfiniteScroller(wrapper, template, filler) {
 		ts.position = 'absolute';
 		ts.width = '100%';
 
-		numMasters = Math.ceil(window.innerHeight / itemHeight);
+		numMasters = Math.ceil(window.innerHeight / itemHeight) * 2;
 
 		for (var i = 0; i < numMasters; i++) {
 			var master = initMaster(i);
@@ -212,11 +216,9 @@ function InfiniteScroller(wrapper, template, filler) {
 	}
 
 	function hideElm(elm) {
-// 		elm.style.opacity = '0';
 		elm.style.visibility = 'hidden';
 	}
 	function showElm(elm) {
-// 		elm.style.opacity = '1';
 		elm.style.visibility = 'visible';
 	}
 
@@ -228,14 +230,17 @@ function InfiniteScroller(wrapper, template, filler) {
 
 	var invalidMasters = {};
 	function fillAnInvalidMaster() {
-		for (var invalidMaster in invalidMasters) {
-			var master = masters[invalidMaster];
-			filler(master.elm, master.item);
-			positionMaster(master.elm, master.item);
-			hideElm(master.placeholder);
-			delete invalidMasters[invalidMaster];
-			return;
+		function getAKey(obj) {
+			for (var k in obj) return k;
 		}
+		var invalidMaster = getAKey(invalidMasters);
+		var master = masters[invalidMaster];
+
+		filler(master.elm, master.item);
+		positionMaster(master.elm, master.item);
+		hideElm(master.placeholder);
+
+		delete invalidMasters[invalidMaster];
 	}
 
 	function setItem(newItem) {
