@@ -83,7 +83,7 @@ App.populator('list', function (page, data) {
 			infini.setPos(content.scrollTop);
 		}, false);
 	} else {
-		content.setAttrribute("data-no-scroll", "true");
+		content.setAttribute("data-no-scroll", "true");
 		// No native scroll events :(
 		// Oh well, we can emulate this.
 		var iscroll = new iScroll(content, {
@@ -192,7 +192,7 @@ function InfiniteScroller(wrapper, template, filler) {
 		ts.position = 'absolute';
 		ts.width = '100%';
 
-		numMasters = Math.ceil(window.innerHeight / itemHeight) * 2;
+		numMasters = Math.ceil(window.innerHeight / itemHeight) + 2;
 
 		for (var i = 0; i < numMasters; i++) {
 			var master = initMaster(i);
@@ -234,6 +234,8 @@ function InfiniteScroller(wrapper, template, filler) {
 			for (var k in obj) return k;
 		}
 		var invalidMaster = getAKey(invalidMasters);
+		if (invalidMaster === undefined) return;
+
 		var master = masters[invalidMaster];
 
 		filler(master.elm, master.item);
