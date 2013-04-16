@@ -13,12 +13,19 @@ img {
 	height: auto !important;
 	line-height: auto !important;
 }
+/*.app-list > * {
+	-webkit-transform: translate3d(0px, 0px, 0px);
+}*/
+.app-content {
+	background: #FFF;
+}
 		</style>
 	</head>
 
 	<body>
 		<div class="app-page" data-page="list">
 			<div class="app-topbar">
+				<div class="app-button left" data-back="true">Back</div>
 				<div class="app-title">Scrollable Demo</div>
 			</div>
 			<div class="app-content">
@@ -39,7 +46,6 @@ img {
 
 
 		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
-<!-- 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script> -->
 		<script src="http://cdn.kik.com/app/1/app.js"></script>
 
 		<script src="/zerver/require.js"></script>
@@ -58,11 +64,13 @@ App.populator('list', function (page, data) {
 // 			content.scrollable();
 
 	function fillWithExampleItems(list, num) {
-		num = num || 500;
+		num = num || 100;
 		for (var i = 0; i < num; i++) {
 			list.appendChild(generate(i));
 		}
 	}
+
+	LongListScroller(page, list, 65);
 
 	function generate(i) {
 		var li = document.createElement('li');
@@ -80,7 +88,7 @@ App.populator('list', function (page, data) {
 		li.addEventListener('click', function () {
 			var w = content.offsetWidth;
 			var h = content.offsetHeight;
-			App.load('viewer', {
+			App.load(i === 1 ? 'list' : 'viewer', {
 				imgsrc: getImageURL(i, w, h),
 				text: "Item " + i,
 			});
@@ -123,6 +131,35 @@ try {
 	App.restore();
 } catch (err) {
 	App.load('list');
+}
+
+// LongListScroller employes a variety of bugfixes and optimizations
+// for reasonable long lists of fixed-height items. It assumes your
+// app-content is scrollable, and will fix flickering and rendering
+// glitches on iOS, with a minimal hit to performance (simply 3ding
+// the entire contents works well for small lists, but causes
+// significant creation/destruction lag for longer lists).
+function LongListScroller(page, scroller, itemHeight) {
+	var content = page.querySelector('.app-content');
+	var elms = scroller.children;
+
+	page.addEventListener('appShow', onAppShow, false);
+
+	function onAppShow() {
+		var pos = content._scrollTop();
+		var height = window.innerHeight;
+
+		var first = Math.floor(pos / itemHeight);
+		var len = Math.ceil(height / itemHeight);
+
+		for (var i = 0; i < elms.length; i++) {
+			elms[i].style.webkitTransform = '';
+		}
+
+		for (var i = 0; i < len; i++) {
+			elms[i + first].style.webkitTransform = 'translate3d(0px, 0px, 0px)';
+		}
+	}
 }
 
 function getImageURL(num, width, height) {
