@@ -9,28 +9,28 @@
 img {
 	vertical-align: middle;
 }
-.item {
-	height: auto !important;
-	line-height: auto !important;
-/* 	position: relative; */
-/* 	height: 65px; */
+.entry {
+	display: none;
 }
-.img-wrap {
+.app-list .entry {
+	height: 64px !important;
+	display: block;
+	border-bottom: 1px solid #CCC;
+}
+.entry .preview {
 	position: relative;
-	height: 64px;
-	float: right;
+	float: left;
 }
-.img-wrap img {
-	position: absolute;
-	top: 0px;
-	right: 0px;
+.entry img {
+	display: block;
 	width: 64px;
 	height: 64px;
 }
-.img-wrap span {
+.entry span {
 	position: absolute;
 	bottom: 4px;
 	right: 4px;
+	font-size: 12px;
 }
 /*.app-list > * {
 	-webkit-transform: translate3d(0px, 0px, 0px);
@@ -63,6 +63,15 @@ img {
 			</div>
 		</div>
 
+		<div class="entry app-button">
+			<div class="preview">
+				<img>
+				<span></span>
+			</div>
+
+			<div class="info">
+			</div>
+		</div>
 
 		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
 		<script src="http://cdn.kik.com/app/1/app.js"></script>
@@ -83,37 +92,29 @@ App.populator('list', function (page, data) {
 // 			content.scrollable();
 
 	function fillWithExampleItems(list, num) {
+		var template = document.querySelector('.entry.app-button');
 		num = num || 100;
 		for (var i = 0; i < num; i++) {
-			list.appendChild(generate(i));
+			var elm = template.cloneNode(true);
+			filler(elm, i);
+			list.appendChild(elm);
 		}
 	}
 
 	LongListScroller(page, list, 65);
 
-	function generate(i) {
-		var li = document.createElement('li');
-		li.className = 'item app-button';
-
-		var imgwrap = document.createElement('div');
-		imgwrap.className = 'img-wrap';
-
-		var img = document.createElement('img');
+	function filler(elm, i) {
+		var img = elm.querySelector('img');
 		img.src = getImageURL(i, 64, 64);
-		img.className = 'img-img';
-		imgwrap.appendChild(img);
 
-		var imgoverlay = document.createElement('span');
-		imgoverlay.innerText = 'Overlay';
-		imgoverlay.className = 'img-overlay';
-		imgwrap.appendChild(imgoverlay);
-		li.appendChild(imgwrap);
+		var time = elm.querySelector('span');
+		time.innerText = '10:' + i + Math.floor(Math.random() - 0.001);
 
-		var text = document.createTextNode("Item " + i);
-		li.appendChild(text);
+		var info = elm.querySelector('.info');
+		info.innerText = 'Item ' + i;
 
-		Clickable(li);
-		li.addEventListener('click', function () {
+		Clickable(elm);
+		elm.addEventListener('click', function () {
 			var w = content.offsetWidth;
 			var h = content.offsetHeight;
 			App.load(i === 1 ? 'list' : 'viewer', {
@@ -121,8 +122,6 @@ App.populator('list', function (page, data) {
 				text: "Item " + i,
 			});
 		}, false);
-
-		return li;
 	}
 });
 
