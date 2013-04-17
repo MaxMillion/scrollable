@@ -13,13 +13,18 @@ img {
 	display: none;
 }
 .app-list .entry {
-	height: 64px !important;
 	display: block;
+	height: 70px !important;
+	width: 100%;
 	border-bottom: 1px solid #CCC;
 }
 .entry .preview {
 	position: relative;
 	float: left;
+	background: #C8C8C8;
+	border: 1px solid #060105;
+	border-radius: 2px;
+	margin: 2px;
 }
 .entry img {
 	display: block;
@@ -30,7 +35,18 @@ img {
 	position: absolute;
 	bottom: 4px;
 	right: 4px;
+	padding: 0 4px;
+	height: 20px;
+	background: rgba(0,0,0, 0.8);
+	border-radius: 3px;
+	color: #FFF;
 	font-size: 12px;
+	line-height: 20px;
+}
+.entry .info {
+	float: left;
+	line-height: 70px;
+	margin-left: 10px;
 }
 /*.app-list > * {
 	-webkit-transform: translate3d(0px, 0px, 0px);
@@ -69,8 +85,9 @@ img {
 				<span></span>
 			</div>
 
-			<div class="info">
-			</div>
+			<div class="info"></div>
+
+			<div class="clear"></div>
 		</div>
 
 		<script src="http://cdn.kik.com/cards/0/cards.js"></script>
@@ -101,14 +118,14 @@ App.populator('list', function (page, data) {
 		}
 	}
 
-	LongListScroller(page, list, 65);
+	LongListScroller(page, list, 71);
 
 	function filler(elm, i) {
 		var img = elm.querySelector('img');
 		img.src = getImageURL(i, 64, 64);
 
 		var time = elm.querySelector('span');
-		time.innerText = '10:' + i + Math.floor(Math.random() - 0.001);
+		time.innerText = '10:' + (i % 10) + Math.floor(Math.random()*10 - 0.001);
 
 		var info = elm.querySelector('.info');
 		info.innerText = 'Item ' + i;
