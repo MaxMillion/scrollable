@@ -12,6 +12,25 @@ img {
 .item {
 	height: auto !important;
 	line-height: auto !important;
+/* 	position: relative; */
+/* 	height: 65px; */
+}
+.img-wrap {
+	position: relative;
+	height: 64px;
+	float: right;
+}
+.img-wrap img {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 64px;
+	height: 64px;
+}
+.img-wrap span {
+	position: absolute;
+	bottom: 4px;
+	right: 4px;
 }
 /*.app-list > * {
 	-webkit-transform: translate3d(0px, 0px, 0px);
@@ -76,10 +95,19 @@ App.populator('list', function (page, data) {
 		var li = document.createElement('li');
 		li.className = 'item app-button';
 
+		var imgwrap = document.createElement('div');
+		imgwrap.className = 'img-wrap';
 
 		var img = document.createElement('img');
 		img.src = getImageURL(i, 64, 64);
-		li.appendChild(img);
+		img.className = 'img-img';
+		imgwrap.appendChild(img);
+
+		var imgoverlay = document.createElement('span');
+		imgoverlay.innerText = 'Overlay';
+		imgoverlay.className = 'img-overlay';
+		imgwrap.appendChild(imgoverlay);
+		li.appendChild(imgwrap);
 
 		var text = document.createTextNode("Item " + i);
 		li.appendChild(text);
@@ -153,11 +181,11 @@ function LongListScroller(page, scroller, itemHeight) {
 		var len = Math.ceil(height / itemHeight);
 
 		for (var i = 0; i < elms.length; i++) {
-			elms[i].style.webkitTransform = '';
+// 			elms[i].style.webkitTransform = '';
 		}
 
 		for (var i = 0; i < len; i++) {
-			elms[i + first].style.webkitTransform = 'translate3d(0px, 0px, 0px)';
+// 			elms[i + first].style.webkitTransform = 'translate3d(0px, 0px, 0px)';
 		}
 	}
 }
