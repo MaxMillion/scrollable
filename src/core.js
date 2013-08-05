@@ -1,16 +1,3 @@
-Scrollable._getScrollableNode = function (isDOMNode) {
-	return function (elem) {
-		if (isDOMNode(elem) && elem._iScroll) {
-			return elem.childNodes[0];
-		}
-		else {
-			return elem;
-		}
-	};
-}(Scrollable._isDOMNode);
-
-
-
 Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, scrollWatcher, iScroll, window, document) {
 	var nativeScrolling = shouldUseNativeScrolling();
 	return enableScrolling;
@@ -110,6 +97,7 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 				onScrollEnd         : onScroll,
 				onBeforeScrollStart : inputScrollFix
 			});
+			elem._iScroll = scroller;
 
 			callback(scroller);
 		});
@@ -183,3 +171,16 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 	window                     ,
 	document
 );
+
+
+
+Scrollable._getScrollableNode = function (isDOMNode) {
+	return function (elem) {
+		if (isDOMNode(elem) && elem._iScroll) {
+			return elem.childNodes[0];
+		}
+		else {
+			return elem;
+		}
+	};
+}(Scrollable._isDOMNode);

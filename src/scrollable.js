@@ -15,6 +15,10 @@ var Scrollable = function (Zepto, jQuery) {
 		return Scrollable._getScrollableNode.apply(this, arguments);
 	};
 
+	Scrollable.infinite = function () {
+		return Scrollable._enableInfiniteScrolling.apply(this, arguments);
+	};
+
 
 
 	// Zepto exports
@@ -28,9 +32,15 @@ var Scrollable = function (Zepto, jQuery) {
 				return this;
 			},
 			scrollableNode : function () {
-				return $(this.map(function () {
+				return Zepto(this.map(function () {
 					return Scrollable._getScrollableNode(this);
 				}));
+			},
+			scrollableInfinite : function (options, generator) {
+				this.forEach(function (elem) {
+					Scrollable._enableInfiniteScrolling(elem, options, generator);
+				});
+				return this;
 			}
 		});
 
@@ -123,9 +133,16 @@ var Scrollable = function (Zepto, jQuery) {
 		};
 
 		jQuery.fn.scrollableNode = function () {
-			return $(this.map(function () {
+			return jQuery(this.map(function () {
 				return Scrollable._getScrollableNode(this);
 			}));
+		};
+
+		jQuery.fn.scrollableInfinite = function (options, generator) {
+			this.each(function () {
+				Scrollable._enableInfiniteScrolling(this, options, generator);
+			});
+			return this;
 		};
 
 		var jQueryScrollTop  = jQuery.fn.scrollTop,

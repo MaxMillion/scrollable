@@ -44,6 +44,44 @@ $(element).scrollLeft(20); // set X offset
 ```
 
 
+### Infinite scroll
+
+There are times when you want to continually add contents to the bottom of a list while a user scrolls down. For example a Facebook feed-style page would want to keep adding new posts as the user nears the bottom of the page. Scroll provides functionality to make this convenient.
+
+```js
+$(element).scrollableInfinite(function () {
+	// This function will get called any time the user
+	// gets near the bottom of the list. Simply return
+	// the next element (or list of elements) to be added.
+	return $('<div class="new-list-item">');
+});
+```
+
+Often times dynamic loading like this is necessary because of network activity to fetch the items that are being added. Infinite scroll generators can be asynchronous to accomodate this.
+
+```js
+$(element).scrollableInfinite(function (callback) {
+	$.ajax('url', function () {
+		// Respond with items to add
+		callback( $('<div class="new-list-item">') );
+	});
+});
+```
+
+In these network-bound scenarios we will likely want to show the user a loading spinner (or equivalent) to indicate what is happening. Infinite scroll can automatically show and hide the loading spinner for you in these cases.
+
+```js
+$(element).scrollableInfinite({
+	loading : $('<div class="my-loading-elem">')
+}, function (callback) {
+	$.ajax('url', function () {
+		// Respond with items to add
+		callback( $('<div class="new-list-item">') );
+	});
+});
+```
+
+
 ### Manipulating scrollable region
 
 When native scrolling is not available we must wrap your content and use [iScroll](http://cubiq.org/iscroll-4) to simulate scrolling.
@@ -91,6 +129,17 @@ element._scrollLeft(20); // set X offset
 ```
 
 Using the regular scrollTop/scrollLeft attributes will only work on newer mobile OS's. (iOS 5+ & Android 4+)
+
+
+### Infinite scroll
+
+```js
+Scrollable.infinite(element, {
+	loading : '<div class="my-loading-elem"></div>'
+}, function (callback) {
+	callback('<div class="new-list-item"></div>');
+});
+```
 
 
 ### Manipulating scrollable region

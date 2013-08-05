@@ -163,36 +163,39 @@
 		<script src="../src/utils.js"        ></script>
 		<script src="../src/scrollWatcher.js"></script>
 		<script src="../src/core.js"         ></script>
+		<script src="../src/infinite.js"     ></script>
 
 		<script>
 			var list      = $('.list'),
 				scrolling = $('.topbar .scrolling'),
 				button    = $('.topbar .button');
 
-			function printScrolling () {
-				if ( list[0]._isScrolling ) {
-					scrolling.css('background', '#CFC');
-				}
-				else {
-					scrolling.css('background', '#FCC');
-				}
+			function printScrolling() {
+				scrolling.css('background', list[0]._isScrolling? '#CFC':'#FCC');
 			}
 
-			function scrollToTop () {
+			function scrollToTop() {
 				list.scrollTop(0);
 			}
 
-			list.scrollable();
+			function enableScrolling (infinite) {
+				if (infinite) {
+					list.empty();
 
-			button
-				.clickable()
-				.on('click', scrollToTop);
+					var i = -3;
+					list.scrollableInfinite(function () {
+						i += 4;
+						return ['<div class="item">Item '+i+'</div>','<div class="item">Item '+(i+1)+'</div>','<div class="item">Item '+(i+2)+'</div>','<div class="item">Item '+(i+3)+'</div>'];
+					});
+				} else {
+					list.scrollable();
+				}
+			}
 
+			enableScrolling(location.search === '?infinite');
+			button.clickable().on('click', scrollToTop);
 			printScrolling();
-
-			setInterval(function () {
-				printScrolling();
-			}, 100);
+			setInterval(printScrolling, 100);
 		</script>
 	</body>
 </html>

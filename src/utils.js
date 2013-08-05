@@ -23,6 +23,18 @@ Scrollable._os = function (userAgent, parseFloat) {
 
 
 
+Scrollable._isArray = function (isArray) {
+	return function (arr) {
+		if (isArray) {
+			return isArray(arr);
+		} else {
+			return Object.prototype.toString.call(arr) !== '[object Array]';
+		}
+	};
+}(Array.isArray);
+
+
+
 Scrollable._isDOMNode = function (Node, HTMLElement) {
 	return function (elem) {
 		if ( !elem ) {
