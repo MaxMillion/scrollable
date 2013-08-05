@@ -10,6 +10,7 @@ AWS_CFG="${HOME}/.s3cfg-kik"
 
 buildProject () {
 	buildJS "scrollable.js" "src/iscroll.js src/scrollable.js src/utils.js src/scrollWatcher.js src/core.js src/infinite.js"
+	buildDebugJS "scrollable-DEBUG.js" "src/iscroll.js src/scrollable.js src/utils.js src/scrollWatcher.js src/core.js src/infinite.js"
 }
 
 

@@ -31,7 +31,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			loading = undefined;
 		}
 		if (typeof loading !== 'undefined') {
-			loadingElem = prepareElements(loading)[0];
+			loadingElem = prepareElements([loading])[0];
 		}
 		if (radius === null) {
 			radius = undefined;
@@ -54,7 +54,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		scroller.addEventListener('scroll', tryToAddItems, false);
 
 		function tryToAddItems () {
-			if (done || lock || !shouldAddMoreItems(elem, radius) ) {
+			if (done || lock || !shouldAddMoreItems(scroller, radius) ) {
 				return;
 			}
 			lock = true;
@@ -134,7 +134,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		function finish (newElems) {
 			var noResponse = false;
 
-			if (loadingElem) {
+			if (loadingElem && loadingElem.parentNode) {
 				loadingElem.parentNode.removeChild(loadingElem);
 			}
 
