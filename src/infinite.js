@@ -158,5 +158,5 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 	Scrollable._forEachInArray    , // from utils.js
 	Scrollable._enableScrolling   , // from core.js
 	Scrollable._getScrollableNode , // from core.js
-	jQuery
+	window.jQuery
 );
