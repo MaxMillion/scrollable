@@ -146,9 +146,10 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 				forEach(newElems, function (newElem) {
 					getScrollableNode(elem).appendChild(newElem);
 				});
+				callback(newElems.length);
+			} else {
+				callback(0);
 			}
-
-			callback(newElems.length);
 		}
 	}
 }(

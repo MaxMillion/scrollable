@@ -184,6 +184,9 @@
 
 					var i = -3;
 					list.scrollableInfinite(function () {
+						if (i >= 32) {
+							return null;
+						}
 						i += 4;
 						return ['<div class="item">Item '+i+'</div>','<div class="item">Item '+(i+1)+'</div>','<div class="item">Item '+(i+2)+'</div>','<div class="item">Item '+(i+3)+'</div>'];
 					});
