@@ -1,5 +1,5 @@
 /**
- * scrollable.js v1.0
+ * scrollable.js
  * Seamless scrolling for mobile devices
  * Copyright (c) 2012 Kik Interactive, http://kik.com
  * Released under the MIT license

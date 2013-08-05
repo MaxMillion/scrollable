@@ -46,7 +46,7 @@
 				-moz-box-shadow: 0 1px 3px #777;
 				box-shadow: 0 1px 3px #777;
 			}
-			.box .topbar .offset,
+			.box .topbar .scrolling,
 			.box .topbar .button {
 				margin: 6px;
 				padding: 0 8px;
@@ -58,13 +58,10 @@
 				font-weight: bold;
 				line-height: 32px;
 			}
-			.box .topbar .offset {
+			.box .topbar .scrolling {
 				float: left;
 				background: #E5E5E5;
 				color: #555;
-			}
-			.box .topbar .offset span {
-				font-weight: normal;
 			}
 			.box .topbar .button {
 				float: right;
@@ -119,7 +116,7 @@
 	<body>
 		<div class="box">
 			<div class="topbar">
-				<div class="offset">Offset: <span></span></div>
+				<div class="scrolling">Scrolling</div>
 				<div class="button">Top</div>
 				<div class="clear"></div>
 			</div>
@@ -159,30 +156,49 @@
 		</div>
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-		<script src="http://code.kik.com/clickable/1.0.min.js"></script>
-		<script src="../scrollable.js"></script>
-		<script>
-			var list   = $('.list'),
-				offset = $('.topbar .offset span'),
-				button = $('.topbar .button');
+		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
 
-			function printOffset () {
-				offset.text( list.scrollTop() );
+		<script src="../src/iscroll.js"      ></script>
+		<script src="../src/scrollable.js"   ></script>
+		<script src="../src/utils.js"        ></script>
+		<script src="../src/scrollWatcher.js"></script>
+		<script src="../src/core.js"         ></script>
+		<script src="../src/infinite.js"     ></script>
+
+		<script>
+			var list      = $('.list'),
+				scrolling = $('.topbar .scrolling'),
+				button    = $('.topbar .button');
+
+			function printScrolling() {
+				scrolling.css('background', list[0]._isScrolling? '#CFC':'#FCC');
 			}
 
-			function scrollToTop () {
+			function scrollToTop() {
 				list.scrollTop(0);
 			}
 
-			list
-				.scrollable()
-				.on('scroll', printOffset);
+			function enableScrolling (infinite) {
+				if (infinite) {
+					list.empty();
 
-			button
-				.clickable()
-				.on('click', scrollToTop);
+					var i = -3;
+					list.scrollableInfinite(function () {
+						if (i >= 32) {
+							return null;
+						}
+						i += 4;
+						return ['<div class="item">Item '+i+'</div>','<div class="item">Item '+(i+1)+'</div>','<div class="item">Item '+(i+2)+'</div>','<div class="item">Item '+(i+3)+'</div>'];
+					});
+				} else {
+					list.scrollable();
+				}
+			}
 
-			printOffset();
+			enableScrolling(location.search === '?infinite');
+			button.clickable().on('click', scrollToTop);
+			printScrolling();
+			setInterval(printScrolling, 100);
 		</script>
 	</body>
 </html>
