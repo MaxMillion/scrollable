@@ -138,13 +138,15 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 				loadingElem.parentNode.removeChild(loadingElem);
 			}
 
-			if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
-				newElems = [ newElems ];
+			if (newElems) {
+				if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
+					newElems = [ newElems ];
+				}
+				newElems = prepareElements(newElems);
+				forEach(newElems, function (newElem) {
+					getScrollableNode(elem).appendChild(newElem);
+				});
 			}
-			newElems = prepareElements(newElems);
-			forEach(newElems, function (newElem) {
-				getScrollableNode(elem).appendChild(newElem);
-			});
 
 			callback(newElems.length);
 		}
