@@ -49,7 +49,9 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			enableScrolling(elem);
 			scroller = elem;
 		}
-
+		if (loadingElem) {
+			getScrollableNode(elem).appendChild(loadingElem);
+		}
 		tryToAddItems();
 		scroller.addEventListener('scroll', tryToAddItems, false);
 
@@ -121,22 +123,12 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 
 	function addMoreItems (elem, loadingElem, generator, callback) {
 		var newElems = generator(finish);
-
 		if (typeof newElems !== 'undefined') {
 			finish(newElems);
-			return;
-		}
-
-		if (loadingElem) {
-			getScrollableNode(elem).appendChild(loadingElem);
 		}
 
 		function finish (newElems) {
 			var noResponse = false;
-
-			if (loadingElem && loadingElem.parentNode) {
-				loadingElem.parentNode.removeChild(loadingElem);
-			}
 
 			if (newElems) {
 				if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
@@ -146,8 +138,14 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 				forEach(newElems, function (newElem) {
 					getScrollableNode(elem).appendChild(newElem);
 				});
+				if (loadingElem) {
+					getScrollableNode(elem).appendChild(loadingElem);
+				}
 				callback(newElems.length);
 			} else {
+				if (loadingElem && loadingElem.parentNode) {
+					loadingElem.parentNode.removeChild(loadingElem);
+				}
 				callback(0);
 			}
 		}
