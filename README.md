@@ -48,6 +48,8 @@ $(element).scrollLeft(20); // set X offset
 
 There are times when you want to continually add contents to the bottom of a list while a user scrolls down. For example a Facebook feed-style page would want to keep adding new posts as the user nears the bottom of the page. Scroll provides functionality to make this convenient.
 
+The element that is being enabled for infinite scroll is explicitely the one that new nodes will be appended to. Scrollable will automatically look up the parent tree to find the scrolling element to bind events to.
+
 ```js
 $(element).scrollableInfinite(function () {
 	// This function will get called any time the user
