@@ -54,8 +54,10 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			getScrollableNode(elem).appendChild(loadingElem);
 		}
 
-		tryToAddItems();
 		bindListeners();
+		if (options.autoStart !== false) {
+			tryToAddItems();
+		}
 
 		return {
 			layout  : tryToAddItems   ,
@@ -84,7 +86,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		}
 
 		function tryToAddItems () {
-			if (done || lock || !shouldAddMoreItems(scroller, radius) ) {
+			if (!enabled || done || lock || !shouldAddMoreItems(scroller, radius) ) {
 				return;
 			}
 			lock = true;
