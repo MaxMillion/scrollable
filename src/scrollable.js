@@ -37,10 +37,14 @@ var Scrollable = function (Zepto, jQuery) {
 				}));
 			},
 			scrollableInfinite : function (options, generator) {
+				var scroller;
 				this.forEach(function (elem) {
-					Scrollable._enableInfiniteScrolling(elem, options, generator);
+					var s = Scrollable._enableInfiniteScrolling(elem, options, generator);
+					if ( !scroller ) {
+						scroller = s;
+					}
 				});
-				return this;
+				return scroller;
 			}
 		});
 
@@ -139,10 +143,14 @@ var Scrollable = function (Zepto, jQuery) {
 		};
 
 		jQuery.fn.scrollableInfinite = function (options, generator) {
+			var scroller;
 			this.each(function () {
-				Scrollable._enableInfiniteScrolling(this, options, generator);
+				var s = Scrollable._enableInfiniteScrolling(this, options, generator);
+				if ( !scroller ) {
+					scroller = s;
+				}
 			});
-			return this;
+			return scroller;
 		};
 
 		var jQueryScrollTop  = jQuery.fn.scrollTop,

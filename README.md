@@ -57,6 +57,9 @@ $(element).scrollableInfinite(function () {
 	// the next element (or list of elements) to be added.
 	return $('<div class="new-list-item">');
 });
+scroller.disable(); // disable auto loading
+scroller.enable();  // re-enable auto loading
+scroller.destroy(); // destroy and cleanup infinite scroll bindings
 ```
 
 Often times dynamic loading like this is necessary because of network activity to fetch the items that are being added. Infinite scroll generators can be asynchronous to accomodate this.
@@ -136,11 +139,14 @@ Using the regular scrollTop/scrollLeft attributes will only work on newer mobile
 ### Infinite scroll
 
 ```js
-Scrollable.infinite(element, {
+var scroller = Scrollable.infinite(element, {
 	loading : '<div class="my-loading-elem"></div>'
 }, function (callback) {
 	callback('<div class="new-list-item"></div>');
 });
+scroller.disable();
+scroller.enable();
+scroller.destroy();
 ```
 
 
