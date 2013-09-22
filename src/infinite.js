@@ -54,7 +54,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			getScrollableNode(elem).appendChild(loadingElem);
 		}
 
-		bindListeners(options.autoStart);
+		bindListeners( !options.autoStart );
 
 		return {
 			layout  : tryToAddItems   ,
@@ -63,7 +63,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			destroy : destroyInfiniteScroll
 		};
 
-		function bindListeners (shouldTryToAddItems) {
+		function bindListeners (dontTryToAddItems) {
 			if (enabled) {
 				return;
 			}
@@ -71,7 +71,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 				throw Error('cannot enable infinite scroller that has been destroyed');
 			}
 			enabled = true;
-			if (shouldTryToAddItems) {
+			if ( !dontTryToAddItems ) {
 				tryToAddItems();
 			}
 			scroller.addEventListener('scroll', tryToAddItems, false);
