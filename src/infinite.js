@@ -19,8 +19,11 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		if (typeof generator !== 'function') {
 			throw generator + ' is not a function';
 		}
+		if (options.scroller && !isDOMNode(options.scroller)) {
+			throw TypeError('options.scroller must be a DOM node, got ' + options.scroller);
+		}
 
-		var scroller = findParentScroller(elem),
+		var scroller = options.scroller || findParentScroller(elem),
 			loading  = options.loading,
 			radius   = options.triggerRadius,
 			enabled  = false,
