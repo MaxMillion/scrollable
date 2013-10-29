@@ -63,10 +63,11 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		}
 
 		return {
-			layout  : tryToAddItems   ,
-			enable  : bindListeners   ,
-			disable : unbindListeners ,
-			destroy : destroyInfiniteScroll
+			layout      : tryToAddItems      ,
+			forceLayout : forcefullyAddItems ,
+			enable      : bindListeners      ,
+			disable     : unbindListeners    ,
+			destroy     : destroyInfiniteScroll
 		};
 
 		function bindListeners () {
@@ -89,7 +90,24 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		}
 
 		function tryToAddItems () {
-			if (!enabled || done || lock || !shouldAddMoreItems(scroller, radius) ) {
+			if (!enabled || done || lock || !shouldAddMoreItems(scroller, radius)) {
+				return;
+			}
+			lock = true;
+
+			addMoreItems(function (numAdded) {
+				lock = false;
+
+				if (numAdded) {
+					tryToAddItems();
+				} else {
+					destroyInfiniteScroll();
+				}
+			});
+		}
+
+		function forcefullyAddItems () {
+			if (!enabled || done || lock) {
 				return;
 			}
 			lock = true;
