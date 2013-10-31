@@ -24,18 +24,20 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 
 		var scroller;
 
-		elem._scrollTop = function (top) {
+		elem._scrollTop = function (top, callback) {
 			if (typeof top === 'undefined') {
 				return scroller ? Math.max(parseInt(-scroller.y), 0) : elem.scrollTop;
 			}
 
 			if (!scroller && (!os.mobile || nativeScrolling)) {
 				elem.scrollTop = top;
+				callback && callback();
 				return;
 			}
 
 			onReady(function () {
 				scroller.scrollTo(scroller.x, Math.min(-top, 0), 1);
+				callback && callback();
 			});
 		};
 
@@ -94,8 +96,14 @@ Scrollable._enableScrolling = function (os, isDOMNode, onReady, forEachInArray, 
 				bounce              : !!os.ios,
 				onScrollMove        : onScroll,
 				onBeforeScrollEnd   : onScroll,
-				onScrollEnd         : onScroll,
-				onBeforeScrollStart : inputScrollFix
+				onScrollEnd         : function() {
+					elem._iScrolling = false;
+					onScroll()
+				},
+				onBeforeScrollStart : inputScrollFix,
+				onScrollStart 		: function() {
+					elem._iScrolling = true;
+				}
 			});
 			elem._iScroll = scroller;
 

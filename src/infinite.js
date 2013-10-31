@@ -1,4 +1,4 @@
-Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, enableScrolling, getScrollableNode, jQuery) {
+Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach, enableScrolling, getScrollableNode, jQuery) {
 	var DEFAULT_RADIUS = 320;
 
 	return enableInfiniteScrolling;
@@ -135,14 +135,12 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			// work arouhd shitty iPhone scrolling.
 			// we can't actually add stuff above while you are scrolling
 			// or everythign goes to hell. So, do it when you are done.
-			if (goingUp && elem._isScrolling) {
+			if (goingUp && (elem._isScrolling || elem._iScrolling)) {
 				if (doneScrollTimer) {
 					clearTimeout(doneScrollTimer);
 				}
 				doneScrollTimeout = setTimeout(function(){
-					if (!elem._isScrolling) {
-						tryToAddItems();
-					}
+					tryToAddItems();
 				}, 100)
 				return;
 			}
@@ -150,7 +148,6 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			lock = true;
 			addMoreItems(goingUp, function (numAdded) {
 				lock = false;
-
 				if (numAdded) {
 					tryToAddItems();
 				} else {
@@ -208,13 +205,19 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 					var endHeight = scroller.scrollHeight;
 					if (goingUp) {
 						var delta = endHeight - originalHeight;
-						scroller._scrollTop(scroller._scrollTop() + delta);
+						scroller._scrollTop(scroller._scrollTop() + delta, function(){
+							// force shitty new iphones to redraw
+							if (!!os.ios && !scroller._iScroll) {
+								toggle3d(newElems);
+							}
+							callback(newElems.length);
+						});
 
-						// force shitty iphone to redraw
-						toggle3d(newElems);
+						
+					} else {
+						callback(newElems.length);
 					}
 
-					callback(newElems.length);
 				} else {
 					if (loadingElem && loadingElem.parentNode) {
 						loadingElem.parentNode.removeChild(loadingElem);
@@ -327,6 +330,7 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		});
 	}
 }(
+	Scrollable._os                , // from utils.js
 	Scrollable._isDOMNode         , // from utils.js
 	Scrollable._isArray           , // from utils.js
 	Scrollable._forEachInArray    , // from utils.js
