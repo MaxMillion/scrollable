@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Scrollable Demo - Basic</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<style>
+			html, body, div {
+				margin: 0;
+				padding: 0;
+			}
+			html, body {
+				background: #E3E3E3;
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				-webkit-user-select: none;
+				user-select: none;
+			}
+			.clear {
+				clear: both;
+			}
+			.box {
+				position: relative;
+				margin: 16px auto;
+				width: 100%;
+				max-width: 288px;
+				height: 340px;
+				background: #FFF;
+				-webkit-border-radius: 3px;
+				-moz-border-radius: 3px;
+				border-radius: 3px;
+				-webkit-box-shadow: 0 1px 3px #AAA;
+				-moz-box-shadow: 0 1px 3px #AAA;
+				box-shadow: 0 1px 3px #AAA;
+				overflow: hidden;
+			}
+			.box .topbar {
+				z-index: 101;
+				position: relative;
+				height: 44px;
+				background: #3C3C3C;
+				-webkit-border-radius: 3px 3px 0 0;
+				-moz-border-radius: 3px 3px 0 0;
+				border-radius: 3px 3px 0 0;
+				-webkit-box-shadow: 0 1px 3px #777;
+				-moz-box-shadow: 0 1px 3px #777;
+				box-shadow: 0 1px 3px #777;
+				color: #fff;
+				line-height: 44px;
+				padding-left: 8px;
+			}
+			.box .topbar .scrolling,
+			.box .topbar .button {
+				margin: 6px;
+				padding: 0 8px;
+				height: 32px;
+				-webkit-border-radius: 3px;
+				-moz-border-radius: 3px;
+				border-radius: 3px;
+				font-size: 14px;
+				font-weight: bold;
+				line-height: 32px;
+			}
+			.box .topbar .scrolling {
+				float: left;
+				background: #E5E5E5;
+				color: #555;
+			}
+			.box .topbar .button {
+				float: right;
+				background: #EEE;
+				background-image: -webkit-gradient(linear, left top, left bottom, from(#FFF), to(#DDD));
+				background-image: -webkit-linear-gradient(top, #FFF, #DDD);
+				background-image: -moz-linear-gradient(top, #FFF, #DDD);
+				background-image: -ms-linear-gradient(top, #FFF, #DDD);
+				background-image: -o-linear-gradient(top, #FFF, #DDD);
+				background-image: linear-gradient(top, #FFF, #DDD);
+				-webkit-box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
+				-moz-box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
+				box-shadow: 0 1px 3px rgba(0,0,0, 0.3);
+				color: #333;
+				text-shadow: 0 1px 0 #F2F2F2;
+				cursor: pointer;
+			}
+			.box .topbar .button.active {
+				background: #DDD;
+				background-image: -webkit-gradient(linear, left top, left bottom, from(#BBB), to(#DDD));
+				background-image: -webkit-linear-gradient(top, #BBB, #DDD);
+				background-image: -moz-linear-gradient(top, #BBB, #DDD);
+				background-image: -ms-linear-gradient(top, #BBB, #DDD);
+				background-image: -o-linear-gradient(top, #BBB, #DDD);
+				background-image: linear-gradient(top, #BBB, #DDD);
+				-webkit-box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
+				-moz-box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
+				box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3);
+			}
+			.box .list {
+				z-index: 100;
+				position: relative;
+				height: 296px;
+				overflow: scroll;
+			}
+			.box .list .item {
+				margin: 8px 12px;
+				padding: 4px 12px;
+				height: 24px;
+				color: #444;
+				font-size: 18px;
+				font-weight: bold;
+				line-height: 24px;
+				text-shadow: 0 1px 0 #FFF;
+				/*-webkit-transform: translate3d(0,0,0);*/
+			}
+			.box .list .loading {
+				margin: 8px 12px;
+				padding: 4px 12px;
+				height: 24px;
+				color: #444;
+				font-size: 18px;
+				line-height: 24px;
+			}
+			.box .list .item:nth-child(odd) {
+				background: #F7F7F7;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="box">
+			<div class="topbar">
+				To infinity, and beyond!
+				<div class="clear"></div>
+			</div>
+
+			<div class="list">
+			</div>
+		</div>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+		<script src="http://cdn.kik.com/clickable/1.0.0/clickable.js"></script>
+
+		<script src="../src/iscroll.js"      ></script>
+		<script src="../src/scrollable.js"   ></script>
+		<script src="../src/utils.js"        ></script>
+		<script src="../src/scrollWatcher.js"></script>
+		<script src="../src/core.js"         ></script>
+		<script src="../src/infinite.js"     ></script>
+
+
+		<script>
+			console.log("hi");
+			var list      = $('.list'),
+				scrolling = $('.topbar .scrolling'),
+				button    = $('.topbar .button');
+
+			function printScrolling() {
+				scrolling.css('background', list[0]._isScrolling? '#CFC':'#FCC');
+			}
+
+			function scrollToTop() {
+			}
+
+			function enableScrolling () {
+
+				var top=0; bottom=0;
+				list.scrollableInfinite({
+					downGenerator: function () {
+						if (bottom >= 100) {
+							return null;
+						}
+						return [make(++bottom), make(++bottom), make(++bottom), make(++bottom)];
+					},
+					upGenerator: function() {
+						if (top <= -100) {
+							return null;
+						}
+						return [make(--top), make(--top), make(--top), make(--top)];
+					},
+					loading: '<div class="loading">Getting loaded...</div>'
+				})
+			}
+			function make(number) {
+				return '<div class="item">Item '+number+'</div>';
+			}
+
+			enableScrolling(true);
+			button.clickable().on('click', scrollToTop);
+			printScrolling();
+			setInterval(printScrolling, 100);
+		</script>
+	</body>
+</html>

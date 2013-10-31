@@ -4,35 +4,59 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 	return enableInfiniteScrolling;
 
 
-	function enableInfiniteScrolling (elem, options, generator) {
+	function enableInfiniteScrolling (elem, options, downGeneratorConvenience) {
 		if ( !isDOMNode(elem) ) {
 			throw elem + ' is not a DOM element';
 		}
-		if ( !generator ) {
-			generator = options;
-			options   = undefined;
+
+		if ( !downGeneratorConvenience  && typeof options === 'function') {
+			downGeneratorConvenience = options;
+			options   = {};
 		}
-		options = options || {};
+
+		if (downGeneratorConvenience) {
+			if (options.downGenerator) {
+				throw Error('Two downGenerator functions specified');
+			}
+			options.downGenerator = downGeneratorConvenience;
+		}
+
 		if ((typeof options !== 'object') || (options === null)) {
 			throw TypeError('options must be an object if defined, got ' + options);
 		}
+
+		if (!options.downGenerator && !options.upGenerator) {
+			throw Error('No generators specified. What are you even scrolling?')
+		}
+
 		if (typeof options.autoStart === 'undefined') {
 			options.autoStart = true;
 		}
-		if (typeof generator !== 'function') {
-			throw generator + ' is not a function';
+
+		if (options.downGenerator && typeof options.downGenerator !== 'function') {
+			throw 'downGenerator ' + downGenerator + ' is not a function';
 		}
+
+		if (options.upGenerator && typeof options.upGenerator !== 'function') {
+			throw 'upGenerator ' + upGenerator + ' is not a function';
+		}
+
 		if (options.scroller && !isDOMNode(options.scroller)) {
 			throw TypeError('options.scroller must be a DOM node, got ' + options.scroller);
 		}
+
+
 
 		var scroller = options.scroller || findParentScroller(elem),
 			loading  = options.loading,
 			radius   = options.triggerRadius,
 			enabled  = false,
+			doneUp   = !options.upGenerator,
+			doneDown = !options.downGenerator,
 			done     = false,
 			lock     = false,
-			loadingElem;
+			loadingElem,
+			doneScrollTimer;
 
 		if (loading === null) {
 			loading = undefined;
@@ -93,29 +117,55 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		}
 
 		function tryToAddItems () {
-			if (!enabled || done || lock || !shouldAddMoreItems(scroller, radius)) {
+
+			if (!enabled || lock) {
 				return;
 			}
-			lock = true;
 
-			addMoreItems(function (numAdded) {
+			var direction = shouldAddMoreItems(scroller, radius);
+			if (!direction) {
+				return;
+			}
+
+			var goingUp = (direction === 'up');
+			if (goingUp ? doneUp : doneDown) {
+				return;
+			}
+
+			// work arouhd shitty iPhone scrolling.
+			// we can't actually add stuff above while you are scrolling
+			// or everythign goes to hell. So, do it when you are done.
+			if (goingUp && elem._isScrolling) {
+				if (doneScrollTimer) {
+					clearTimeout(doneScrollTimer);
+				}
+				doneScrollTimeout = setTimeout(function(){
+					if (!elem._isScrolling) {
+						tryToAddItems();
+					}
+				}, 100)
+				return;
+			}
+
+			lock = true;
+			addMoreItems(goingUp, function (numAdded) {
 				lock = false;
 
 				if (numAdded) {
 					tryToAddItems();
 				} else {
-					destroyInfiniteScroll();
+					destroyInfiniteScroll(goingUp);
 				}
 			});
 		}
 
-		function forcefullyAddItems () {
+		function forcefullyAddItems (goingUp) {
 			if (!enabled || done || lock) {
 				return;
 			}
 			lock = true;
 
-			addMoreItems(function (numAdded) {
+			addMoreItems(goingUp, function (numAdded) {
 				lock = false;
 
 				if (numAdded) {
@@ -126,7 +176,9 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			});
 		}
 
-		function addMoreItems (callback) {
+		function addMoreItems (goingUp, callback) {
+			var generator = goingUp ? options.upGenerator : options.downGenerator;
+
 			var newElems = generator(finish);
 			if (typeof newElems !== 'undefined') {
 				finish(newElems);
@@ -142,28 +194,64 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 						newElems = [ newElems ];
 					}
 					newElems = prepareElements(newElems);
+
+					var scrollableNode = getScrollableNode(elem);
+					var originalHeight = scroller.scrollHeight;
+
 					forEach(newElems, function (newElem) {
-						getScrollableNode(elem).appendChild(newElem);
+						insert(scrollableNode, newElem);
 					});
 					if (loadingElem) {
-						getScrollableNode(elem).appendChild(loadingElem);
+						insert(scrollableNode,loadingElem);
 					}
+
+					var endHeight = scroller.scrollHeight;
+					if (goingUp) {
+						var delta = endHeight - originalHeight;
+						scroller._scrollTop(scroller._scrollTop() + delta);
+
+						// force shitty iphone to redraw
+						toggle3d(newElems);
+					}
+
 					callback(newElems.length);
 				} else {
+					if (loadingElem && loadingElem.parentNode) {
+						loadingElem.parentNode.removeChild(loadingElem);
+					}
 					callback(0);
+				}
+			}
+
+			function insert(target, elem) {
+				if (goingUp) {
+					target.insertBefore(elem, target.firstChild);
+				} else {
+					target.appendChild(elem);
 				}
 			}
 		}
 
-		function destroyInfiniteScroll () {
+		function destroyInfiniteScroll (goingUp) {
 			if (done) {
 				return;
 			}
-			unbindListeners();
-			done = true;
-			if (loadingElem && loadingElem.parentNode) {
-				loadingElem.parentNode.removeChild(loadingElem);
+
+			if (goingUp) {
+				doneUp = true;
 			}
+			else {
+				downDown = true;
+			}
+			done = (doneDown || !options.downGenerator) && (doneUp || !options.upGenerator);
+			
+			if (done){
+				unbindListeners();
+				if (loadingElem && loadingElem.parentNode) {
+					loadingElem.parentNode.removeChild(loadingElem);
+				}
+			}
+			
 		}
 	}
 
@@ -189,7 +277,13 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		var clientHeight = scroller.clientHeight,
 			scrollTop    = scroller._scrollTop(),
 			scrollHeight = scroller.scrollHeight;
-		return (scrollHeight-scrollTop-clientHeight <= radius);
+		if (scrollHeight-scrollTop-clientHeight <= radius) {
+			return 'down';
+		} else if (scrollTop < radius) {
+			return 'up';
+		} else {
+			return false;
+		}
 	}
 
 	function prepareElements (elemList) {
@@ -221,6 +315,16 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		});
 
 		return newList;
+	}
+
+	function toggle3d (elemList) {
+		forEach(elemList, function(elem) {
+			var old = elem.style.webkitTransform;
+			elem.style.webkitTransform = 'translate3d(0,0,0)';
+			setTimeout(function(){
+				elem.style.webkitTransform = old;
+			},0);
+		});
 	}
 }(
 	Scrollable._isDOMNode         , // from utils.js
