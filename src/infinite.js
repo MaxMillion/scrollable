@@ -16,6 +16,9 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		if ((typeof options !== 'object') || (options === null)) {
 			throw TypeError('options must be an object if defined, got ' + options);
 		}
+		if (typeof options.autoStart === 'undefined') {
+			options.autoStart = true;
+		}
 		if (typeof generator !== 'function') {
 			throw generator + ' is not a function';
 		}
