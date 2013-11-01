@@ -56,13 +56,21 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			done     = false,
 			lock     = false,
 			loadingElem,
+			loadingElemTop,
 			doneScrollTimer;
 
 		if (loading === null) {
 			loading = undefined;
 		}
 		if (typeof loading !== 'undefined') {
-			loadingElem = prepareElements([loading])[0];
+			if (options.downGenerator) {
+				loadingElem = prepareElements([loading])[0];
+				if (options.downGenerator) {
+					loadingElemTop = loadingElem.cloneNode(true); // mwhaha
+				}
+			} else {
+				loadingElemTop = prepareElements([loading])[0];
+			}
 		}
 		if (radius === null) {
 			radius = undefined;
@@ -186,6 +194,8 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 					return;
 				}
 
+				var loading = goingUp ? loadingElemTop : loadingElem;
+
 				if (newElems) {
 					if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
 						newElems = [ newElems ];
@@ -198,8 +208,9 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 					forEach(newElems, function (newElem) {
 						insert(scrollableNode, newElem);
 					});
-					if (loadingElem) {
-						insert(scrollableNode,loadingElem);
+
+					if (loading) {
+						insert(scrollableNode,loading);
 					}
 
 					var endHeight = scroller.scrollHeight;
@@ -219,9 +230,6 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 					}
 
 				} else {
-					if (loadingElem && loadingElem.parentNode) {
-						loadingElem.parentNode.removeChild(loadingElem);
-					}
 					callback(0);
 				}
 			}
@@ -242,17 +250,21 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 
 			if (goingUp) {
 				doneUp = true;
+				if (loadingElemUp && loadingElemUp.parentNode) {
+					loadingElemUp.parentNode.removeChild(loadingElemUp);
+				}
 			}
 			else {
 				downDown = true;
+				if (loadingElem && loadingElem.parentNode) {
+					loadingElem.parentNode.removeChild(loadingElem);
+				}
 			}
 			done = (doneDown || !options.downGenerator) && (doneUp || !options.upGenerator);
 			
 			if (done){
 				unbindListeners();
-				if (loadingElem && loadingElem.parentNode) {
-					loadingElem.parentNode.removeChild(loadingElem);
-				}
+				
 			}
 			
 		}
