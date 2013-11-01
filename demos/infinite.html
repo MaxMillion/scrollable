@@ -165,12 +165,14 @@
 				var top=0; bottom=0;
 				list.scrollableInfinite({
 					downGenerator: function () {
+						console.log("down");
 						if (bottom >= 100) {
 							return null;
 						}
 						return [make(++bottom), make(++bottom), make(++bottom), make(++bottom)];
 					},
 					upGenerator: function() {
+						console.log("up");
 						if (top <= -100) {
 							return null;
 						}
