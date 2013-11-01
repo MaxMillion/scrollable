@@ -125,8 +125,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 		}
 
 		function tryToAddItems () {
-
-			if (!enabled || lock) {
+			if (!enabled || lock || done) {
 				return;
 			}
 
@@ -177,7 +176,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				if (numAdded) {
 					tryToAddItems();
 				} else {
-					destroyInfiniteScroll();
+					destroyInfiniteScroll(goingUp);
 				}
 			});
 		}
@@ -191,7 +190,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			}
 
 			function finish (newElems) {
-				if (done) {
+				if (done || (doneUp && goingUp) || (doneDown && goingDown)) {
 					return;
 				}
 
@@ -225,7 +224,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 							callback(newElems.length);
 						});
 
-						
+
 					} else {
 						callback(newElems.length);
 					}
@@ -262,12 +261,10 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				}
 			}
 			done = (doneDown || !options.downGenerator) && (doneUp || !options.upGenerator);
-			
+
 			if (done){
 				unbindListeners();
-				
 			}
-			
 		}
 
 		function shouldAddMoreItems (scroller, radius) {
