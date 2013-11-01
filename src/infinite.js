@@ -1,44 +1,76 @@
-Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, enableScrolling, getScrollableNode, jQuery) {
+Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach, enableScrolling, getScrollableNode, jQuery) {
 	var DEFAULT_RADIUS = 320;
 
 	return enableInfiniteScrolling;
 
 
-	function enableInfiniteScrolling (elem, options, generator) {
+	function enableInfiniteScrolling (elem, options, downGeneratorConvenience) {
 		if ( !isDOMNode(elem) ) {
 			throw elem + ' is not a DOM element';
 		}
-		if ( !generator ) {
-			generator = options;
-			options   = undefined;
+
+		if ( !downGeneratorConvenience  && typeof options === 'function') {
+			downGeneratorConvenience = options;
+			options   = {};
 		}
-		options = options || {};
+
+		if (downGeneratorConvenience) {
+			if (options.downGenerator) {
+				throw Error('Two downGenerator functions specified');
+			}
+			options.downGenerator = downGeneratorConvenience;
+		}
+
 		if ((typeof options !== 'object') || (options === null)) {
 			throw TypeError('options must be an object if defined, got ' + options);
 		}
+
+		if (!options.downGenerator && !options.upGenerator) {
+			throw Error('No generators specified. What are you even scrolling?')
+		}
+
 		if (typeof options.autoStart === 'undefined') {
 			options.autoStart = true;
 		}
-		if (typeof generator !== 'function') {
-			throw generator + ' is not a function';
+
+		if (options.downGenerator && typeof options.downGenerator !== 'function') {
+			throw 'downGenerator ' + downGenerator + ' is not a function';
 		}
+
+		if (options.upGenerator && typeof options.upGenerator !== 'function') {
+			throw 'upGenerator ' + upGenerator + ' is not a function';
+		}
+
 		if (options.scroller && !isDOMNode(options.scroller)) {
 			throw TypeError('options.scroller must be a DOM node, got ' + options.scroller);
 		}
+
+
 
 		var scroller = options.scroller || findParentScroller(elem),
 			loading  = options.loading,
 			radius   = options.triggerRadius,
 			enabled  = false,
+			doneUp   = !options.upGenerator,
+			doneDown = !options.downGenerator,
 			done     = false,
 			lock     = false,
-			loadingElem;
+			loadingElem,
+			loadingElemTop,
+			doneScrollTimer;
 
 		if (loading === null) {
 			loading = undefined;
 		}
 		if (typeof loading !== 'undefined') {
-			loadingElem = prepareElements([loading])[0];
+			if (options.downGenerator) {
+				loadingElem = prepareElements([loading])[0];
+				if (options.downGenerator) {
+					loadingElemTop = loadingElem.cloneNode(true); // mwhaha
+				}
+			} else {
+				loadingElemTop = prepareElements([loading])[0];
+			}
 		}
 		if (radius === null) {
 			radius = undefined;
@@ -93,29 +125,53 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 		}
 
 		function tryToAddItems () {
-			if (!enabled || done || lock || !shouldAddMoreItems(scroller, radius)) {
+
+			if (!enabled || lock) {
 				return;
 			}
+
+			var direction = shouldAddMoreItems(scroller, radius);
+			if (!direction) {
+				return;
+			}
+
+			var goingUp = (direction === 'up');
+
+			// work arouhd shitty iPhone scrolling.
+			// we can't actually add stuff above while you are scrolling
+			// or everythign goes to hell. So, do it when you are done.
+			if (goingUp && (elem._isScrolling || elem._iScrolling)) {
+				if (doneScrollTimer) {
+					clearTimeout(doneScrollTimer);
+				}
+				doneScrollTimer = setTimeout(function(){
+					tryToAddItems();
+				}, 100)
+				return;
+			}
+
 			lock = true;
-
-			addMoreItems(function (numAdded) {
+			addMoreItems(goingUp, function (numAdded) {
 				lock = false;
-
 				if (numAdded) {
 					tryToAddItems();
 				} else {
-					destroyInfiniteScroll();
+					destroyInfiniteScroll(goingUp);
 				}
 			});
 		}
 
-		function forcefullyAddItems () {
+		function forcefullyAddItems (goingUp) {
 			if (!enabled || done || lock) {
 				return;
 			}
 			lock = true;
 
-			addMoreItems(function (numAdded) {
+			if (typeof goingUp === 'undefined') {
+				goingUp = !options.downGenerator;
+			}
+
+			addMoreItems(goingUp, function (numAdded) {
 				lock = false;
 
 				if (numAdded) {
@@ -126,7 +182,9 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			});
 		}
 
-		function addMoreItems (callback) {
+		function addMoreItems (goingUp, callback) {
+			var generator = goingUp ? options.upGenerator : options.downGenerator;
+
 			var newElems = generator(finish);
 			if (typeof newElems !== 'undefined') {
 				finish(newElems);
@@ -137,32 +195,100 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 					return;
 				}
 
+				var loading = goingUp ? loadingElemTop : loadingElem;
+
 				if (newElems) {
 					if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
 						newElems = [ newElems ];
 					}
 					newElems = prepareElements(newElems);
+
+					var scrollableNode = getScrollableNode(elem);
+					var originalHeight = scroller.scrollHeight;
+
 					forEach(newElems, function (newElem) {
-						getScrollableNode(elem).appendChild(newElem);
+						insert(scrollableNode, newElem);
 					});
-					if (loadingElem) {
-						getScrollableNode(elem).appendChild(loadingElem);
+
+					if (loading) {
+						insert(scrollableNode,loading);
 					}
-					callback(newElems.length);
+
+					var endHeight = scroller.scrollHeight;
+					if (goingUp) {
+						var delta = endHeight - originalHeight;
+						scroller._scrollTop(scroller._scrollTop() + delta, function(){
+							// force shitty new iphones to redraw
+							if (!!os.ios && !scroller._iScroll) {
+								toggle3d(newElems);
+							}
+							callback(newElems.length);
+						});
+
+						
+					} else {
+						callback(newElems.length);
+					}
+
 				} else {
 					callback(0);
 				}
 			}
+
+			function insert(target, elem) {
+				if (goingUp) {
+					target.insertBefore(elem, target.firstChild);
+				} else {
+					target.appendChild(elem);
+				}
+			}
 		}
 
-		function destroyInfiniteScroll () {
+		function destroyInfiniteScroll (goingUp) {
 			if (done) {
 				return;
 			}
-			unbindListeners();
-			done = true;
-			if (loadingElem && loadingElem.parentNode) {
-				loadingElem.parentNode.removeChild(loadingElem);
+
+			if (goingUp) {
+				doneUp = true;
+				if (loadingElemUp && loadingElemUp.parentNode) {
+					loadingElemUp.parentNode.removeChild(loadingElemUp);
+				}
+			}
+			else {
+				downDown = true;
+				if (loadingElem && loadingElem.parentNode) {
+					loadingElem.parentNode.removeChild(loadingElem);
+				}
+			}
+			done = (doneDown || !options.downGenerator) && (doneUp || !options.upGenerator);
+			
+			if (done){
+				unbindListeners();
+				
+			}
+			
+		}
+
+		function shouldAddMoreItems (scroller, radius) {
+			var elem = scroller;
+			while (elem !== document.documentElement) {
+				if (elem.parentNode) {
+					elem = elem.parentNode;
+				} else {
+					return false;
+				}
+			}
+
+			var clientHeight = scroller.clientHeight,
+				scrollTop    = scroller._scrollTop(),
+				scrollHeight = scroller.scrollHeight;
+			if (!doneDown && scrollHeight-scrollTop-clientHeight <= radius) {
+				return 'down';
+			} else if (!doneUp && scrollTop < radius) {
+				return 'up';
+			} else {
+				return false;
 			}
 		}
 	}
@@ -174,22 +300,6 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 			}
 			elem = elem.parentNode;
 		} while (elem);
-	}
-
-	function shouldAddMoreItems (scroller, radius) {
-		var elem = scroller;
-		while (elem !== document.documentElement) {
-			if (elem.parentNode) {
-				elem = elem.parentNode;
-			} else {
-				return false;
-			}
-		}
-
-		var clientHeight = scroller.clientHeight,
-			scrollTop    = scroller._scrollTop(),
-			scrollHeight = scroller.scrollHeight;
-		return (scrollHeight-scrollTop-clientHeight <= radius);
 	}
 
 	function prepareElements (elemList) {
@@ -222,7 +332,18 @@ Scrollable._enableInfiniteScrolling = function (isDOMNode, isArray, forEach, ena
 
 		return newList;
 	}
+
+	function toggle3d (elemList) {
+		forEach(elemList, function(elem) {
+			var old = elem.style.webkitTransform;
+			elem.style.webkitTransform = 'translate3d(0,0,0)';
+			setTimeout(function(){
+				elem.style.webkitTransform = old;
+			},0);
+		});
+	}
 }(
+	Scrollable._os                , // from utils.js
 	Scrollable._isDOMNode         , // from utils.js
 	Scrollable._isArray           , // from utils.js
 	Scrollable._forEachInArray    , // from utils.js

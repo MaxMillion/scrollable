@@ -105,7 +105,7 @@ Scrollable._onReady = function (document, window, forEachInArray) {
 
 	return function (callback) {
 		if (isReady) {
-			setTimeout(callback, 0);
+			callback();
 		}
 		else {
 			readyCallbacks.push(callback);
