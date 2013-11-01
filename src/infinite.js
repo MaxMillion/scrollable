@@ -136,9 +136,6 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			}
 
 			var goingUp = (direction === 'up');
-			if (goingUp ? doneUp : doneDown) {
-				return;
-			}
 
 			// work arouhd shitty iPhone scrolling.
 			// we can't actually add stuff above while you are scrolling
@@ -169,6 +166,10 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				return;
 			}
 			lock = true;
+
+			if (typeof goingUp === 'undefined') {
+				goingUp = !options.downGenerator;
+			}
 
 			addMoreItems(goingUp, function (numAdded) {
 				lock = false;
@@ -268,6 +269,28 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			}
 			
 		}
+
+		function shouldAddMoreItems (scroller, radius) {
+			var elem = scroller;
+			while (elem !== document.documentElement) {
+				if (elem.parentNode) {
+					elem = elem.parentNode;
+				} else {
+					return false;
+				}
+			}
+
+			var clientHeight = scroller.clientHeight,
+				scrollTop    = scroller._scrollTop(),
+				scrollHeight = scroller.scrollHeight;
+			if (!doneDown && scrollHeight-scrollTop-clientHeight <= radius) {
+				return 'down';
+			} else if (!doneUp && scrollTop < radius) {
+				return 'up';
+			} else {
+				return false;
+			}
+		}
 	}
 
 	function findParentScroller (elem) {
@@ -277,28 +300,6 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			}
 			elem = elem.parentNode;
 		} while (elem);
-	}
-
-	function shouldAddMoreItems (scroller, radius) {
-		var elem = scroller;
-		while (elem !== document.documentElement) {
-			if (elem.parentNode) {
-				elem = elem.parentNode;
-			} else {
-				return false;
-			}
-		}
-
-		var clientHeight = scroller.clientHeight,
-			scrollTop    = scroller._scrollTop(),
-			scrollHeight = scroller.scrollHeight;
-		if (scrollHeight-scrollTop-clientHeight <= radius) {
-			return 'down';
-		} else if (scrollTop < radius) {
-			return 'up';
-		} else {
-			return false;
-		}
 	}
 
 	function prepareElements (elemList) {
