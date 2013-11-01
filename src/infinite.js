@@ -144,7 +144,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				if (doneScrollTimer) {
 					clearTimeout(doneScrollTimer);
 				}
-				doneScrollTimeout = setTimeout(function(){
+				doneScrollTimer = setTimeout(function(){
 					tryToAddItems();
 				}, 100)
 				return;
