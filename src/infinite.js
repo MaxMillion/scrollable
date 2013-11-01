@@ -275,7 +275,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			}
 
 			var clientHeight = scroller.clientHeight,
-				scrollTop    = scroller._scrollTop(),
+				scrollTop    = (scroller._scrollTop ? scroller._scrollTop() : scroller.scrollTop),
 				scrollHeight = scroller.scrollHeight;
 			if (!doneDown && scrollHeight-scrollTop-clientHeight <= radius) {
 				return 'down';
