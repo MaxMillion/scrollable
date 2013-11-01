@@ -223,12 +223,9 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 							}
 							callback(newElems.length);
 						});
-
-
 					} else {
 						callback(newElems.length);
 					}
-
 				} else {
 					callback(0);
 				}
@@ -250,12 +247,12 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 
 			if (goingUp) {
 				doneUp = true;
-				if (loadingElemUp && loadingElemUp.parentNode) {
-					loadingElemUp.parentNode.removeChild(loadingElemUp);
+				if (loadingElemTop && loadingElemTop.parentNode) {
+					loadingElemTop.parentNode.removeChild(loadingElemTop);
 				}
 			}
 			else {
-				downDown = true;
+				doneDown = true;
 				if (loadingElem && loadingElem.parentNode) {
 					loadingElem.parentNode.removeChild(loadingElem);
 				}
