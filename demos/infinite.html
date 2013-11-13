@@ -164,17 +164,15 @@
 
 				var top=0; bottom=0;
 				list.scrollableInfinite({
-					downGenerator: function () {
-						if (bottom >= 100) {
-							return null;
-						}
-						return [make(++bottom), make(++bottom), make(++bottom), make(++bottom)];
+					downGenerator: function (callback) {
+						setTimeout(function(){
+							callback([make(++bottom), make(++bottom), make(++bottom), make(++bottom)], bottom >= 40);
+						}, 300)
 					},
-					upGenerator: function() {
-						if (top <= -100) {
-							return null;
-						}
-						return [make(--top), make(--top), make(--top), make(--top)];
+					upGenerator: function(callback) {
+						setTimeout(function(){
+							callback([make(--top), make(--top), make(--top), make(--top)], top <= -40);
+						}, 300)
 					},
 					loading: '<div class="loading">Getting loaded...</div>'
 				})
