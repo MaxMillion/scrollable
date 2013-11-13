@@ -170,10 +170,10 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				goingUp = !options.downGenerator;
 			}
 
-			addMoreItems(goingUp, function (numAdded) {
+			addMoreItems(goingUp, function (moreToFetch) {
 				lock = false;
 
-				if (numAdded) {
+				if (moreToFetch) {
 					tryToAddItems();
 				} else {
 					destroyInfiniteScroll(goingUp);
@@ -189,12 +189,13 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				finish(newElems);
 			}
 
-			function finish (newElems) {
-				if (done || (doneUp && goingUp) || (doneDown && goingDown)) {
+			function finish (newElems, isLast) {
+				if (done || (doneUp && goingUp) || (doneDown && !goingUp)) {
 					return;
 				}
 
 				var loading = goingUp ? loadingElemTop : loadingElem;
+				var moreToFetch = newElems && newElems.length && !isLast;
 
 				if (newElems) {
 					if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
@@ -221,13 +222,13 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 							if (!!os.ios && !scroller._iScroll) {
 								toggle3d(newElems);
 							}
-							callback(newElems.length);
+							callback(moreToFetch);
 						});
 					} else {
-						callback(newElems.length);
+						callback(moreToFetch);
 					}
 				} else {
-					callback(0);
+					callback(moreToFetch);
 				}
 			}
 
