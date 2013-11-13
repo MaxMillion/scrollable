@@ -150,9 +150,9 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			}
 
 			lock = true;
-			addMoreItems(goingUp, function (numAdded) {
+			addMoreItems(goingUp, function (moreToFetch) {
 				lock = false;
-				if (numAdded) {
+				if (moreToFetch) {
 					tryToAddItems();
 				} else {
 					destroyInfiniteScroll(goingUp);
