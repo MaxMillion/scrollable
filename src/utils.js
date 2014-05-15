@@ -63,6 +63,16 @@ Scrollable._isDOMNode = function (Node, HTMLElement) {
 
 
 
+Scrollable._isjQueryElem = function ($elem) {
+	if (typeof $elem !== 'object' || $elem === null) {
+		return false;
+	} else {
+		return ($elem.val && $elem.addClass && $elem.css && $elem.html && $elem.show);
+	}
+};
+
+
+
 Scrollable._findInArray = function (indexOf) {
 	return function (arr, item, startIndex) {
 		if (indexOf) {

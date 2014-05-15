@@ -1,10 +1,22 @@
-Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach, enableScrolling, getScrollableNode, jQuery) {
+Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isjQueryElem, isArray, forEach, enableScrolling, getScrollableNode, jQuery) {
 	var DEFAULT_RADIUS = 320;
 
 	return enableInfiniteScrolling;
 
 
 	function enableInfiniteScrolling (elem, options, downGeneratorConvenience) {
+		if ( isjQueryElem(elem) ) {
+			if (elem.length) {
+				var l = elem.length-1;
+				for (var i=0; i<l; i++) {
+					enableInfiniteScrolling(elem[i], options, downGeneratorConvenience);
+				}
+				return enableInfiniteScrolling(elem[l], options, downGeneratorConvenience);
+			} else {
+				return;
+			}
+		}
+
 		if ( !isDOMNode(elem) ) {
 			throw elem + ' is not a DOM element';
 		}
@@ -59,6 +71,12 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 			loadingElemTop,
 			doneScrollTimer;
 
+		if ( isjQueryElem(scroller) ) {
+			scroller = scroller[0];
+		}
+		if ( isjQueryElem(loading) ) {
+			loading = loading[0];
+		}
 		if (loading === null) {
 			loading = undefined;
 		}
@@ -198,7 +216,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 				var moreToFetch = newElems && newElems.length && !isLast;
 
 				if (newElems) {
-					if (!isArray(newElems) && !((typeof newElems === 'object') && (newElems.constructor === jQuery))) {
+					if (!isArray(newElems) && !isjQueryElem(newElems)) {
 						newElems = [ newElems ];
 					}
 					newElems = prepareElements(newElems);
@@ -319,6 +337,11 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 					} else if ( isDOMNode(rawElem) ) {
 						newList.push(rawElem);
 						return;
+					} else if ( isjQueryElem(rawElem) ) {
+						forEach(rawElem, function (elem) {
+							newList.push(elem);
+						});
+						return;
 					}
 				default:
 					throw TypeError('expected an element, got ' + rawElem);
@@ -340,6 +363,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isArray, forEach,
 }(
 	Scrollable._os                , // from utils.js
 	Scrollable._isDOMNode         , // from utils.js
+	Scrollable._isjQueryElem      , // from utils.js
 	Scrollable._isArray           , // from utils.js
 	Scrollable._forEachInArray    , // from utils.js
 	Scrollable._enableScrolling   , // from core.js
