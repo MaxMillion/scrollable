@@ -115,13 +115,15 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isjQueryElem, isA
 			tryToAddItems();
 		}
 
-		return {
+		var infiniteScroller = {
 			layout      : tryToAddItems      ,
 			forceLayout : forcefullyAddItems ,
 			enable      : bindListeners      ,
 			disable     : unbindListeners    ,
 			destroy     : destroyInfiniteScroll
 		};
+		scroller._infinite = infiniteScroller;
+		return infiniteScroller;
 
 		function bindListeners () {
 			if (enabled) {
