@@ -123,7 +123,7 @@ Scrollable._enableInfiniteScrolling = function (os, isDOMNode, isjQueryElem, isA
 			disable     : unbindListeners    ,
 			destroy     : destroyInfiniteScroll
 		};
-		if (scroller._infinites) {
+		if ( !scroller._infinites ) {
 			scroller._infinites = [];
 		}
 		scroller._infinites.push(infiniteScroller);
